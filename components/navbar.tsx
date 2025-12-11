@@ -29,7 +29,7 @@ export default function Navbar() {
     e.preventDefault()
     if (searchQuery.trim()) {
       const params = new URLSearchParams()
-      params.set("caracteristicas", searchQuery.trim().toLowerCase())
+      params.set("search", searchQuery.trim().toLowerCase())
       router.push(`/comprar?${params.toString()}`)
       setSearchQuery("")
     }
@@ -39,7 +39,7 @@ export default function Navbar() {
     e.preventDefault()
     if (mobileSearchQuery.trim()) {
       const params = new URLSearchParams()
-      params.set("caracteristicas", mobileSearchQuery.trim().toLowerCase())
+      params.set("search", mobileSearchQuery.trim().toLowerCase())
       router.push(`/comprar?${params.toString()}`)
       setMobileSearchQuery("")
       setIsOpen(false)
