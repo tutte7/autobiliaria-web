@@ -44,6 +44,8 @@ export default async function ComprarPage(props: ComprarPageProps) {
   // Para el estado inicial de los filtros en la UI, pasamos los valores parseados.
   const initialFilters = {
     brand: marca || "",
+    model: "",
+    state: "",
     opportunity: opportunity,
     priceMin: precioMin || 0,
     priceMax: precioMax || 100000000,
