@@ -80,7 +80,7 @@
 }
 
 @theme inline {
-  --font-sans: "Montserrat", "Geist", "Geist Fallback";
+  --font-sans: var(--font-sans);
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --font-square-721: var(--font-square-721), "Square 721 TL Bold Extended", "Arial", sans-serif;
   --color-background: var(--background);
