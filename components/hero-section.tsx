@@ -153,6 +153,16 @@ export default function HeroSection() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.marca])
 
+  const handleCategoryClick = (value: Category) => {
+    const params = new URLSearchParams()
+    if (value === "oportunidad") {
+      params.set("opportunity", "true")
+    } else {
+      params.set("tipo", value)
+    }
+    router.push(`/comprar?${params.toString()}`)
+  }
+
   const handleAdvancedSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const params = new URLSearchParams()
@@ -250,7 +260,7 @@ export default function HeroSection() {
                     Búsqueda Inteligente
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Selecciona una categoría y personaliza tu búsqueda.
+                    Explora por categoría rápida o utiliza los filtros para una búsqueda personalizada.
                   </p>
                 </div>
 
@@ -268,9 +278,9 @@ export default function HeroSection() {
                           <button
                             key={value}
                             type="button"
-                            onClick={() => setSelectedCategory(value)}
+                            onClick={() => handleCategoryClick(value)}
                             className={cn(
-                              "relative flex flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all duration-200 border-2",
+                              "relative flex flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all duration-200 border-2 cursor-pointer",
                               "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
                               isSelected
                                 ? "border-primary bg-primary text-white shadow-lg shadow-primary/25 scale-[1.02]"
@@ -293,62 +303,48 @@ export default function HeroSection() {
                     </div>
                   </div>
 
-                  {/* Formulario */}
-                  <form onSubmit={handleAdvancedSearch} className="space-y-6">
-                    
-                    {/* Fila 1: Marca y Modelo */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Marca</label>
-                        <Popover open={openBrand} onOpenChange={setOpenBrand}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={openBrand}
-                              disabled={loadingBrands}
-                              className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
-                            >
-                              {loadingBrands ? (
-                                <span className="flex items-center gap-2 text-gray-400">
-                                  Cargando...
-                                </span>
-                              ) : form.marca ? (
-                                brands.find((b) => b.id.toString() === form.marca)?.nombre || "Marca seleccionada"
-                              ) : (
-                                <span className="text-gray-400">Todas las marcas</span>
-                              )}
-                              <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
-                            <Command className="rounded-lg">
-                              <CommandInput placeholder="Buscar marca..." className="h-10 text-base border-none focus:ring-0" />
-                              <CommandList className="max-h-[280px] p-1">
-                                <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró la marca.</CommandEmpty>
-                                <CommandGroup>
-                                  <CommandItem
-                                    value="all_brands_option"
-                                    onSelect={() => {
-                                      handleInputChange("marca", "")
-                                      setOpenBrand(false)
-                                    }}
-                                    className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-3 h-4 w-4",
-                                        form.marca === "" ? "text-primary opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    Todas las marcas
-                                  </CommandItem>
-                                  {brands.map((brand) => (
+                  {/* Búsqueda Personalizada */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-bold uppercase tracking-wider text-gray-400">
+                      Búsqueda Personalizada
+                    </label>
+                    <form onSubmit={handleAdvancedSearch} className="space-y-6">
+                      
+                      {/* Fila 1: Marca y Modelo */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700 ml-1">Marca</label>
+                          <Popover open={openBrand} onOpenChange={setOpenBrand}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openBrand}
+                                disabled={loadingBrands}
+                                className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                              >
+                                {loadingBrands ? (
+                                  <span className="flex items-center gap-2 text-gray-400">
+                                    Cargando...
+                                  </span>
+                                ) : form.marca ? (
+                                  brands.find((b) => b.id.toString() === form.marca)?.nombre || "Marca seleccionada"
+                                ) : (
+                                  <span className="text-gray-400">Todas las marcas</span>
+                                )}
+                                <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
+                              <Command className="rounded-lg">
+                                <CommandInput placeholder="Buscar marca..." className="h-10 text-base border-none focus:ring-0" />
+                                <CommandList className="max-h-[280px] p-1">
+                                  <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró la marca.</CommandEmpty>
+                                  <CommandGroup>
                                     <CommandItem
-                                      key={brand.id}
-                                      value={brand.nombre}
+                                      value="all_brands_option"
                                       onSelect={() => {
-                                        handleInputChange("marca", brand.id.toString())
+                                        handleInputChange("marca", "")
                                         setOpenBrand(false)
                                       }}
                                       className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
@@ -356,74 +352,74 @@ export default function HeroSection() {
                                       <Check
                                         className={cn(
                                           "mr-3 h-4 w-4",
-                                          form.marca === brand.id.toString()
-                                            ? "text-primary opacity-100"
-                                            : "opacity-0"
+                                          form.marca === "" ? "text-primary opacity-100" : "opacity-0"
                                         )}
                                       />
-                                      {brand.nombre}
+                                      Todas las marcas
                                     </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+                                    {brands.map((brand) => (
+                                      <CommandItem
+                                        key={brand.id}
+                                        value={brand.nombre}
+                                        onSelect={() => {
+                                          handleInputChange("marca", brand.id.toString())
+                                          setOpenBrand(false)
+                                        }}
+                                        className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-3 h-4 w-4",
+                                            form.marca === brand.id.toString()
+                                              ? "text-primary opacity-100"
+                                              : "opacity-0"
+                                          )}
+                                        />
+                                        {brand.nombre}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Modelo</label>
-                        <Popover open={openModel} onOpenChange={setOpenModel}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={openModel}
-                              disabled={!form.marca || loadingModels}
-                              className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
-                            >
-                              {loadingModels ? (
-                                <span className="flex items-center gap-2 text-gray-400">
-                                  Cargando...
-                                </span>
-                              ) : form.modelo ? (
-                                models.find((m) => m.id.toString() === form.modelo)?.nombre || "Modelo seleccionado"
-                              ) : (
-                                <span className="text-gray-400">
-                                  {!form.marca ? "Primero elige marca" : "Todos los modelos"}
-                                </span>
-                              )}
-                              <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
-                            <Command className="rounded-lg">
-                              <CommandInput placeholder="Buscar modelo..." className="h-10 text-base border-none focus:ring-0" />
-                              <CommandList className="max-h-[280px] p-1">
-                                <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró el modelo.</CommandEmpty>
-                                <CommandGroup>
-                                  <CommandItem
-                                    value="all_models_option"
-                                    onSelect={() => {
-                                      handleInputChange("modelo", "")
-                                      setOpenModel(false)
-                                    }}
-                                    className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-3 h-4 w-4",
-                                        form.modelo === "" ? "text-primary opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    Todos los modelos
-                                  </CommandItem>
-                                  {models.map((model) => (
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700 ml-1">Modelo</label>
+                          <Popover open={openModel} onOpenChange={setOpenModel}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openModel}
+                                disabled={!form.marca || loadingModels}
+                                className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                              >
+                                {loadingModels ? (
+                                  <span className="flex items-center gap-2 text-gray-400">
+                                    Cargando...
+                                  </span>
+                                ) : form.modelo ? (
+                                  models.find((m) => m.id.toString() === form.modelo)?.nombre || "Modelo seleccionado"
+                                ) : (
+                                  <span className="text-gray-400">
+                                    {!form.marca ? "Primero elige marca" : "Todos los modelos"}
+                                  </span>
+                                )}
+                                <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
+                              <Command className="rounded-lg">
+                                <CommandInput placeholder="Buscar modelo..." className="h-10 text-base border-none focus:ring-0" />
+                                <CommandList className="max-h-[280px] p-1">
+                                  <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró el modelo.</CommandEmpty>
+                                  <CommandGroup>
                                     <CommandItem
-                                      key={model.id}
-                                      value={model.nombre}
+                                      value="all_models_option"
                                       onSelect={() => {
-                                        handleInputChange("modelo", model.id.toString())
+                                        handleInputChange("modelo", "")
                                         setOpenModel(false)
                                       }}
                                       className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
@@ -431,78 +427,97 @@ export default function HeroSection() {
                                       <Check
                                         className={cn(
                                           "mr-3 h-4 w-4",
-                                          form.modelo === model.id.toString()
-                                            ? "text-primary opacity-100"
-                                            : "opacity-0"
+                                          form.modelo === "" ? "text-primary opacity-100" : "opacity-0"
                                         )}
                                       />
-                                      {model.nombre}
+                                      Todas los modelos
                                     </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-
-                    {/* Fila 2: Precios */}
-                    <div className="grid grid-cols-2 gap-5">
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Precio Mín.</label>
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">USD</span>
-                          <input
-                            type="number"
-                            placeholder="0"
-                            min={0}
-                            value={form.precioMin}
-                            onChange={(e) => handleInputChange("precioMin", e.target.value)}
-                            className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-14 pr-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
-                          />
+                                    {models.map((model) => (
+                                      <CommandItem
+                                        key={model.id}
+                                        value={model.nombre}
+                                        onSelect={() => {
+                                          handleInputChange("modelo", model.id.toString())
+                                          setOpenModel(false)
+                                        }}
+                                        className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-3 h-4 w-4",
+                                            form.modelo === model.id.toString()
+                                              ? "text-primary opacity-100"
+                                              : "opacity-0"
+                                          )}
+                                        />
+                                        {model.nombre}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Precio Máx.</label>
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">USD</span>
-                          <input
-                            type="number"
-                            placeholder="Sin límite"
-                            min={0}
-                            value={form.precioMax}
-                            onChange={(e) => handleInputChange("precioMax", e.target.value)}
-                            className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-14 pr-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
-                          />
+
+                      {/* Fila 2: Precios */}
+                      <div className="grid grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700 ml-1">Precio Mín.</label>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">USD</span>
+                            <input
+                              type="number"
+                              placeholder="0"
+                              min={0}
+                              value={form.precioMin}
+                              onChange={(e) => handleInputChange("precioMin", e.target.value)}
+                              className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-14 pr-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700 ml-1">Precio Máx.</label>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">USD</span>
+                            <input
+                              type="number"
+                              placeholder="Sin límite"
+                              min={0}
+                              value={form.precioMax}
+                              onChange={(e) => handleInputChange("precioMax", e.target.value)}
+                              className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-14 pr-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Fila 3: Características (Opcional) */}
-                    <div className="space-y-1.5">
-                       <label className="text-sm font-semibold text-gray-700 ml-1">
-                          ¿Buscas algo específico? <span className="text-gray-400 font-normal">(Opcional)</span>
-                       </label>
-                       <input
-                          type="text"
-                          value={form.caracteristicas}
-                          onChange={(e) => handleInputChange("caracteristicas", e.target.value)}
-                          placeholder='Ej: "automático", "cuero", "techo solar"...'
-                          className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white px-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
-                        />
-                    </div>
+                      {/* Fila 3: Características (Opcional) */}
+                      <div className="space-y-1.5">
+                         <label className="text-sm font-semibold text-gray-700 ml-1">
+                            ¿Buscas algo específico? <span className="text-gray-400 font-normal">(Opcional)</span>
+                         </label>
+                         <input
+                            type="text"
+                            value={form.caracteristicas}
+                            onChange={(e) => handleInputChange("caracteristicas", e.target.value)}
+                            placeholder='Ej: "automático", "cuero", "techo solar"...'
+                            className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white px-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
+                          />
+                      </div>
 
-                    {/* Botón CTA */}
-                    <button
-                      type="submit"
-                      className="w-full h-16 rounded-xl bg-primary text-white text-lg font-bold tracking-wide shadow-xl shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-3"
-                    >
-                      <Search size={24} strokeWidth={2.5} />
-                      VER VEHÍCULOS
-                    </button>
+                      {/* Botón CTA */}
+                      <button
+                        type="submit"
+                        className="w-full h-16 rounded-xl bg-primary text-white text-lg font-bold tracking-wide shadow-xl shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-3"
+                      >
+                        <Search size={24} strokeWidth={2.5} />
+                        VER VEHÍCULOS
+                      </button>
 
-                  </form>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
