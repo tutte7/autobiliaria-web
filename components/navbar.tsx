@@ -4,16 +4,15 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Search, Menu, X, ShoppingBag, DollarSign, Mail, Home, Sparkles } from "lucide-react"
+import { Menu, X, ShoppingBag, DollarSign, Mail, Home, Sparkles } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { LiveSearch } from "@/components/live-search"
 
 export default function Navbar() {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [mobileSearchQuery, setMobileSearchQuery] = useState("")
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,27 +23,6 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      const params = new URLSearchParams()
-      params.set("search", searchQuery.trim().toLowerCase())
-      router.push(`/comprar?${params.toString()}`)
-      setSearchQuery("")
-    }
-  }
-
-  const handleMobileSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (mobileSearchQuery.trim()) {
-      const params = new URLSearchParams()
-      params.set("search", mobileSearchQuery.trim().toLowerCase())
-      router.push(`/comprar?${params.toString()}`)
-      setMobileSearchQuery("")
-      setIsOpen(false)
-    }
-  }
 
   return (
     <nav className="fixed left-0 right-0 top-4 z-50 w-full transition-all duration-300">
@@ -105,28 +83,17 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Search Bar */}
-        <form
-          onSubmit={handleSearch}
-          className={cn(
-            "hidden md:flex items-center gap-2 h-9 w-[220px] lg:w-[280px] rounded-full border transition-all duration-200",
-            "bg-white/70 border-border/50 backdrop-blur-xl shadow-sm hover:shadow-md",
-            "focus-within:ring-2 focus-within:ring-primary/30"
-          )}
-          role="search"
-        >
-          <div className="pl-3 text-muted-foreground">
-            <Search size={16} />
-          </div>
-          <input
-            type="search"
+        {/* Search Bar Desktop */}
+        <div className="hidden md:block w-[220px] lg:w-[280px]">
+          <LiveSearch 
             placeholder="Buscar vehículo, marca, modelo…"
-            aria-label="Buscar"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 outline-none"
+            className={cn(
+              "h-9 rounded-full border transition-all duration-200",
+              "bg-white/70 border-border/50 backdrop-blur-xl shadow-sm hover:shadow-md",
+              "focus-within:ring-2 focus-within:ring-primary/30"
+            )}
           />
-        </form>
+        </div>
 
         {/* Mobile Menu Button */}
         <button
@@ -154,19 +121,13 @@ export default function Navbar() {
             <div className="max-w-[1200px] mx-auto px-4 mt-3">
               <div className="rounded-[28px] md:rounded-[30px] border border-border/50 bg-white/98 backdrop-blur-xl shadow-2xl ring-1 ring-black/5 p-5 space-y-3">
                 
-                {/* Search First */}
+                {/* Search First Mobile */}
                 <div className="pb-3 border-b border-border/30">
-                  <form onSubmit={handleMobileSearch} className="flex items-center gap-3 bg-muted/50 rounded-2xl border border-border/40 px-4 py-3 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                    <Search size={20} className="text-primary flex-shrink-0" />
-                    <input
-                      type="search"
-                      placeholder="Buscar vehículo, marca..."
-                      aria-label="Buscar"
-                      value={mobileSearchQuery}
-                      onChange={(e) => setMobileSearchQuery(e.target.value)}
-                      className="bg-transparent outline-none flex-1 text-sm placeholder:text-muted-foreground/70 text-foreground font-medium"
-                    />
-                  </form>
+                  <LiveSearch 
+                    placeholder="Buscar vehículo, marca..."
+                    onSearch={() => setIsOpen(false)}
+                    className="bg-muted/50 rounded-2xl border border-border/40 px-4 py-3 focus-within:ring-2 focus-within:ring-primary/20 transition-all"
+                  />
                 </div>
 
                 {/* Navigation Links */}

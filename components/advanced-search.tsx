@@ -108,8 +108,8 @@ export default function AdvancedSearch({ className }: AdvancedSearchProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           
           {/* Selector de Marca */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">
               Marca
             </label>
             <Popover open={openBrand} onOpenChange={setOpenBrand}>
@@ -118,17 +118,19 @@ export default function AdvancedSearch({ className }: AdvancedSearchProps) {
                   variant="outline"
                   role="combobox"
                   aria-expanded={openBrand}
-                  className="w-full justify-between rounded-xl border-border/60 bg-white px-3 py-2 text-sm font-normal text-muted-foreground hover:bg-white hover:text-foreground"
+                  className="w-full justify-between rounded-2xl border-transparent bg-white px-4 py-6 text-base font-normal shadow-sm ring-1 ring-black/5 hover:bg-gray-50 hover:text-foreground focus:ring-2 focus:ring-primary/20 transition-all"
                 >
-                  {selectedBrandName || "Selecciona una marca"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <span className={cn("truncate", !selectedBrandName && "text-muted-foreground")}>
+                    {selectedBrandName || "Selecciona una marca"}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-40" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                <Command>
-                  <CommandInput placeholder="Buscar marca..." />
-                  <CommandList>
-                    <CommandEmpty>No se encontró la marca.</CommandEmpty>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-2xl border-none shadow-xl ring-1 ring-black/5 bg-white">
+                <Command className="rounded-xl">
+                  <CommandInput placeholder="Buscar marca..." className="h-10 text-base border-none focus:ring-0" />
+                  <CommandList className="max-h-[280px] p-1">
+                    <CommandEmpty className="py-4 text-sm text-muted-foreground">No se encontró la marca.</CommandEmpty>
                     <CommandGroup>
                       {brands.map((brand) => (
                         <CommandItem
@@ -138,12 +140,13 @@ export default function AdvancedSearch({ className }: AdvancedSearchProps) {
                             handleInputChange("marca", brand.id.toString())
                             setOpenBrand(false)
                           }}
+                          className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4",
+                              "mr-3 h-4 w-4",
                               advancedSearch.marca === brand.id.toString()
-                                ? "opacity-100"
+                                ? "text-primary opacity-100"
                                 : "opacity-0"
                             )}
                           />
@@ -158,8 +161,8 @@ export default function AdvancedSearch({ className }: AdvancedSearchProps) {
           </div>
 
           {/* Selector de Modelo Dinámico */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">
               Modelo
             </label>
             <Popover open={openModel} onOpenChange={setOpenModel}>
@@ -168,18 +171,20 @@ export default function AdvancedSearch({ className }: AdvancedSearchProps) {
                   variant="outline"
                   role="combobox"
                   aria-expanded={openModel}
-                  disabled={!advancedSearch.marca} // Deshabilitado si no hay marca
-                  className="w-full justify-between rounded-xl border-border/60 bg-white px-3 py-2 text-sm font-normal text-muted-foreground hover:bg-white hover:text-foreground disabled:opacity-50"
+                  disabled={!advancedSearch.marca}
+                  className="w-full justify-between rounded-2xl border-transparent bg-white px-4 py-6 text-base font-normal shadow-sm ring-1 ring-black/5 hover:bg-gray-50 hover:text-foreground focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-50 disabled:bg-gray-50"
                 >
-                  {selectedModelName || (advancedSearch.marca ? "Selecciona un modelo" : "Elige una marca primero")}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                   <span className={cn("truncate", !selectedModelName && "text-muted-foreground")}>
+                    {selectedModelName || (advancedSearch.marca ? "Selecciona un modelo" : "Elige una marca primero")}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-40" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                <Command>
-                  <CommandInput placeholder="Buscar modelo..." />
-                  <CommandList>
-                    <CommandEmpty>No se encontró el modelo.</CommandEmpty>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-2xl border-none shadow-xl ring-1 ring-black/5 bg-white">
+                <Command className="rounded-xl">
+                  <CommandInput placeholder="Buscar modelo..." className="h-10 text-base border-none focus:ring-0" />
+                  <CommandList className="max-h-[280px] p-1">
+                    <CommandEmpty className="py-4 text-sm text-muted-foreground">No se encontró el modelo.</CommandEmpty>
                     <CommandGroup>
                       {models.map((model) => (
                         <CommandItem
@@ -189,12 +194,13 @@ export default function AdvancedSearch({ className }: AdvancedSearchProps) {
                             handleInputChange("modelo", model.id.toString())
                             setOpenModel(false)
                           }}
+                          className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4",
+                              "mr-3 h-4 w-4",
                               advancedSearch.modelo === model.id.toString()
-                                ? "opacity-100"
+                                ? "text-primary opacity-100"
                                 : "opacity-0"
                             )}
                           />

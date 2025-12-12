@@ -9,9 +9,25 @@ import {
   Search,
   Sparkles,
   Truck,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react"
 import { parametersService, type ModelParameter, type Parameter } from "@/services/parameters"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 type Category = "auto" | "camioneta" | "moto" | "oportunidad"
 
@@ -39,6 +55,10 @@ export default function HeroSection() {
   const [models, setModels] = useState<ModelParameter[]>([])
   const [loadingBrands, setLoadingBrands] = useState(true)
   const [loadingModels, setLoadingModels] = useState(false)
+  
+  // Popover states
+  const [openBrand, setOpenBrand] = useState(false)
+  const [openModel, setOpenModel] = useState(false)
 
   const router = useRouter()
 
@@ -280,44 +300,150 @@ export default function HeroSection() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Marca</label>
-                        <div className="relative">
-                          <select
-                            value={form.marca}
-                            onChange={(e) => handleInputChange("marca", e.target.value)}
-                            disabled={loadingBrands}
-                            className="h-14 w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-0 disabled:bg-gray-50 disabled:text-gray-400"
-                          >
-                            <option value="">{loadingBrands ? "Cargando..." : "Todas las marcas"}</option>
-                            {brands.map((b) => (
-                              <option key={b.id} value={b.id.toString()}>{b.nombre}</option>
-                            ))}
-                          </select>
-                          <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                            <ChevronRight className="h-5 w-5 rotate-90" />
-                          </div>
-                        </div>
+                        <Popover open={openBrand} onOpenChange={setOpenBrand}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openBrand}
+                              disabled={loadingBrands}
+                              className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                            >
+                              {loadingBrands ? (
+                                <span className="flex items-center gap-2 text-gray-400">
+                                  Cargando...
+                                </span>
+                              ) : form.marca ? (
+                                brands.find((b) => b.id.toString() === form.marca)?.nombre || "Marca seleccionada"
+                              ) : (
+                                <span className="text-gray-400">Todas las marcas</span>
+                              )}
+                              <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
+                            <Command className="rounded-lg">
+                              <CommandInput placeholder="Buscar marca..." className="h-10 text-base border-none focus:ring-0" />
+                              <CommandList className="max-h-[280px] p-1">
+                                <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró la marca.</CommandEmpty>
+                                <CommandGroup>
+                                  <CommandItem
+                                    value="all_brands_option"
+                                    onSelect={() => {
+                                      handleInputChange("marca", "")
+                                      setOpenBrand(false)
+                                    }}
+                                    className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-3 h-4 w-4",
+                                        form.marca === "" ? "text-primary opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    Todas las marcas
+                                  </CommandItem>
+                                  {brands.map((brand) => (
+                                    <CommandItem
+                                      key={brand.id}
+                                      value={brand.nombre}
+                                      onSelect={() => {
+                                        handleInputChange("marca", brand.id.toString())
+                                        setOpenBrand(false)
+                                      }}
+                                      className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-3 h-4 w-4",
+                                          form.marca === brand.id.toString()
+                                            ? "text-primary opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {brand.nombre}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </div>
 
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Modelo</label>
-                        <div className="relative">
-                          <select
-                            value={form.modelo}
-                            onChange={(e) => handleInputChange("modelo", e.target.value)}
-                            disabled={!form.marca || loadingModels}
-                            className="h-14 w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-0 disabled:bg-gray-50 disabled:text-gray-400"
-                          >
-                            <option value="">
-                              {!form.marca ? "Primero elige marca" : loadingModels ? "Cargando..." : "Todos los modelos"}
-                            </option>
-                            {models.map((m) => (
-                              <option key={m.id} value={m.id.toString()}>{m.nombre}</option>
-                            ))}
-                          </select>
-                          <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                            <ChevronRight className="h-5 w-5 rotate-90" />
-                          </div>
-                        </div>
+                        <Popover open={openModel} onOpenChange={setOpenModel}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openModel}
+                              disabled={!form.marca || loadingModels}
+                              className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                            >
+                              {loadingModels ? (
+                                <span className="flex items-center gap-2 text-gray-400">
+                                  Cargando...
+                                </span>
+                              ) : form.modelo ? (
+                                models.find((m) => m.id.toString() === form.modelo)?.nombre || "Modelo seleccionado"
+                              ) : (
+                                <span className="text-gray-400">
+                                  {!form.marca ? "Primero elige marca" : "Todos los modelos"}
+                                </span>
+                              )}
+                              <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
+                            <Command className="rounded-lg">
+                              <CommandInput placeholder="Buscar modelo..." className="h-10 text-base border-none focus:ring-0" />
+                              <CommandList className="max-h-[280px] p-1">
+                                <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró el modelo.</CommandEmpty>
+                                <CommandGroup>
+                                  <CommandItem
+                                    value="all_models_option"
+                                    onSelect={() => {
+                                      handleInputChange("modelo", "")
+                                      setOpenModel(false)
+                                    }}
+                                    className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-3 h-4 w-4",
+                                        form.modelo === "" ? "text-primary opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    Todos los modelos
+                                  </CommandItem>
+                                  {models.map((model) => (
+                                    <CommandItem
+                                      key={model.id}
+                                      value={model.nombre}
+                                      onSelect={() => {
+                                        handleInputChange("modelo", model.id.toString())
+                                        setOpenModel(false)
+                                      }}
+                                      className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-3 h-4 w-4",
+                                          form.modelo === model.id.toString()
+                                            ? "text-primary opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {model.nombre}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
 

@@ -33,7 +33,7 @@ export default async function ComprarPage(props: ComprarPageProps) {
     km_max: kmMax,
     search,
     ordering,
-    oportunidad: opportunity,
+    ...(opportunity ? { oportunidad: true } : {}),
   };
 
   // Fetch de datos en el servidor

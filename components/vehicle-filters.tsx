@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Filter, X, Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import { parametersService, Parameter, ModelParameter } from "@/services/parameters"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Slider } from "@/components/ui/slider"
 import {
   Command,
   CommandEmpty,
@@ -19,13 +20,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 interface FilterState {
   brand: string
@@ -81,6 +75,31 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
   // Popover states
   const [openBrand, setOpenBrand] = useState(false)
   const [openModel, setOpenModel] = useState(false)
+  const [openFuel, setOpenFuel] = useState(false)
+  const [openTransmission, setOpenTransmission] = useState(false)
+  const [openSegment, setOpenSegment] = useState(false)
+  const [openState, setOpenState] = useState(false)
+
+  // Estados locales para sliders (UX inmediata)
+  const [localPriceMax, setLocalPriceMax] = useState(INITIAL_FILTERS.priceMax)
+  const [localYear, setLocalYear] = useState(INITIAL_FILTERS.year)
+  const [localKm, setLocalKm] = useState(INITIAL_FILTERS.km)
+
+  // Ref para trackear si los filtros externos cambiaron realmente
+  const prevExternalFilters = useRef(externalFilters)
+
+  // Sincronizar estados locales cuando cambian los filtros externos
+  useEffect(() => {
+    setLocalPriceMax(filters.priceMax)
+  }, [filters.priceMax])
+
+  useEffect(() => {
+    setLocalYear(filters.year)
+  }, [filters.year])
+
+  useEffect(() => {
+    setLocalKm(filters.km)
+  }, [filters.km])
 
   // Cargar catálogos estáticos al inicio
   useEffect(() => {
@@ -138,14 +157,15 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
   useEffect(() => {
     if (!externalFilters) return
 
-    const isDifferent = (Object.keys(externalFilters) as Array<keyof FilterState>).some(
-      (key) => externalFilters[key] !== filters[key]
-    )
+    // Verificar si externalFilters cambió respecto a la última vez que lo vimos
+    // (no comparado con el estado actual 'filters', sino consigo mismo en el pasado)
+    const isExternalChanged = JSON.stringify(externalFilters) !== JSON.stringify(prevExternalFilters.current)
 
-    if (isDifferent) {
+    if (isExternalChanged) {
       setFilters(externalFilters)
+      prevExternalFilters.current = externalFilters
     }
-  }, [externalFilters, filters])
+  }, [externalFilters])
 
   const updateUrl = (newFilters: FilterState) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -215,6 +235,10 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
   // Helpers para mostrar nombres
   const getBrandName = (id: string) => brands.find(b => b.id.toString() === id)?.nombre
   const getModelName = (id: string) => models.find(m => m.id.toString() === id)?.nombre
+  const getFuelName = (id: string) => fuels.find(f => f.id.toString() === id)?.nombre
+  const getTransmissionName = (id: string) => transmissions.find(t => t.id.toString() === id)?.nombre
+  const getSegmentName = (id: string) => segments.find(s => s.id.toString() === id)?.nombre
+  const getStateName = (id: string) => states.find(s => s.id.toString() === id)?.nombre
 
   return (
     <div className="space-y-4">
@@ -254,7 +278,7 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                 variant="outline"
                 role="combobox"
                 aria-expanded={openBrand}
-                className="w-full justify-between px-3 py-2 h-10 font-normal border-border bg-background hover:bg-background/90"
+                className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
               >
                 {loadingBrands ? (
                   <span className="flex items-center gap-2 text-muted-foreground">
@@ -268,10 +292,10 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Buscar marca..." />
-                <CommandList>
+            <PopoverContent className="w-[280px] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+              <Command className="rounded-lg">
+                <CommandInput placeholder="Buscar marca..." className="h-9" />
+                <CommandList className="max-h-[280px] p-1">
                   <CommandEmpty>No se encontró la marca.</CommandEmpty>
                   <CommandGroup>
                     <CommandItem
@@ -280,6 +304,7 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                         handleChange("brand", "")
                         setOpenBrand(false)
                       }}
+                      className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
                     >
                       <Check
                         className={cn(
@@ -297,6 +322,7 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                           handleChange("brand", brand.id.toString())
                           setOpenBrand(false)
                         }}
+                        className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
                       >
                         <Check
                           className={cn(
@@ -324,7 +350,7 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                 role="combobox"
                 aria-expanded={openModel}
                 disabled={!filters.brand}
-                className="w-full justify-between px-3 py-2 h-10 font-normal border-border bg-background hover:bg-background/90 disabled:opacity-50"
+                className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all disabled:opacity-50"
               >
                 {loadingModels ? (
                   <span className="flex items-center gap-2 text-muted-foreground">
@@ -340,10 +366,10 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Buscar modelo..." />
-                <CommandList>
+            <PopoverContent className="w-[280px] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+              <Command className="rounded-lg">
+                <CommandInput placeholder="Buscar modelo..." className="h-9" />
+                <CommandList className="max-h-[280px] p-1">
                   <CommandEmpty>No se encontró el modelo.</CommandEmpty>
                   <CommandGroup>
                     <CommandItem
@@ -352,6 +378,7 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                         handleChange("model", "")
                         setOpenModel(false)
                       }}
+                      className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
                     >
                       <Check
                         className={cn(
@@ -369,6 +396,7 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
                           handleChange("model", model.id.toString())
                           setOpenModel(false)
                         }}
+                        className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
                       >
                         <Check
                           className={cn(
@@ -400,138 +428,328 @@ export default function VehicleFilters({ onChange, externalFilters }: VehicleFil
         </div>
 
         {/* Price Range */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="font-semibold text-foreground">Precio</label>
-            <span className="text-sm text-muted-foreground">${filters.priceMin.toLocaleString()} - ${filters.priceMax.toLocaleString()}</span>
+            <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
+              Hasta ${localPriceMax.toLocaleString()}
+            </span>
           </div>
-          <input
-            type="range"
-            min="0"
-            max="100000000"
-            step="1000000"
-            value={filters.priceMax}
-            onChange={(e) => handleChange("priceMax", Number.parseInt(e.target.value))}
-            className="w-full accent-primary cursor-pointer"
+          <Slider
+            min={0}
+            max={100000000}
+            step={1000000}
+            value={[localPriceMax]}
+            onValueChange={([val]) => setLocalPriceMax(val)}
+            onValueCommit={([val]) => handleChange("priceMax", val)}
+            className="py-2"
           />
         </div>
 
         {/* Year */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="font-semibold text-foreground">Año</label>
-            <span className="text-sm text-muted-foreground">{filters.year} - 2025</span>
+            <label className="font-semibold text-foreground">Año mínimo</label>
+            <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
+              Desde {localYear}
+            </span>
           </div>
-          <input
-            type="range"
-            min="2000"
-            max="2025"
-            step="1"
-            value={filters.year}
-            onChange={(e) => handleChange("year", Number.parseInt(e.target.value))}
-            className="w-full accent-primary cursor-pointer"
+          <Slider
+            min={2000}
+            max={2025}
+            step={1}
+            value={[localYear]}
+            onValueChange={([val]) => setLocalYear(val)}
+            onValueCommit={([val]) => handleChange("year", val)}
+            className="py-2"
           />
         </div>
 
         {/* Kilometers */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="font-semibold text-foreground">Kilómetros</label>
-            <span className="text-sm text-muted-foreground">0 - {filters.km.toLocaleString("es-AR")} km</span>
+            <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
+              Hasta {localKm.toLocaleString("es-AR")} km
+            </span>
           </div>
-          <input
-            type="range"
-            min="0"
-            max="200000"
-            step="5000"
-            value={filters.km}
-            onChange={(e) => handleChange("km", Number.parseInt(e.target.value))}
-            className="w-full accent-primary cursor-pointer"
+          <Slider
+            min={0}
+            max={200000}
+            step={5000}
+            value={[localKm]}
+            onValueChange={([val]) => setLocalKm(val)}
+            onValueCommit={([val]) => handleChange("km", val)}
+            className="py-2"
           />
         </div>
 
-        {/* Fuel (Dynamic Select) */}
+        {/* Fuel (Popover + Command) */}
         <div className="space-y-2">
           <label className="font-semibold text-foreground">Combustible</label>
-          <Select
-            value={filters.fuel}
-            onValueChange={(val) => handleChange("fuel", val === "all" ? "" : val)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Cualquier combustible" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Cualquier combustible</SelectItem>
-              {fuels.map((f) => (
-                <SelectItem key={f.id} value={f.id.toString()}>
-                  {f.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={openFuel} onOpenChange={setOpenFuel}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openFuel}
+                className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
+              >
+                {filters.fuel ? (
+                  getFuelName(filters.fuel) || "Combustible seleccionado"
+                ) : (
+                  <span className="text-muted-foreground">Cualquier combustible</span>
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+              <Command className="rounded-lg">
+                <CommandInput placeholder="Buscar combustible..." className="h-9" />
+                <CommandList className="max-h-[280px] p-1">
+                  <CommandEmpty>No se encontró el combustible.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all_fuels_option"
+                      onSelect={() => {
+                        handleChange("fuel", "")
+                        setOpenFuel(false)
+                      }}
+                      className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          filters.fuel === "" ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      Cualquier combustible
+                    </CommandItem>
+                    {fuels.map((fuel) => (
+                      <CommandItem
+                        key={fuel.id}
+                        value={fuel.nombre}
+                        onSelect={() => {
+                          handleChange("fuel", fuel.id.toString())
+                          setOpenFuel(false)
+                        }}
+                        className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.fuel === fuel.id.toString() ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {fuel.nombre}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
-        {/* Transmission (Dynamic Select) */}
+        {/* Transmission (Popover + Command) */}
         <div className="space-y-2">
           <label className="font-semibold text-foreground">Transmisión</label>
-          <Select
-            value={filters.transmission}
-            onValueChange={(val) => handleChange("transmission", val === "all" ? "" : val)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Cualquier transmisión" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Cualquier transmisión</SelectItem>
-              {transmissions.map((t) => (
-                <SelectItem key={t.id} value={t.id.toString()}>
-                  {t.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={openTransmission} onOpenChange={setOpenTransmission}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openTransmission}
+                className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
+              >
+                {filters.transmission ? (
+                  getTransmissionName(filters.transmission) || "Transmisión seleccionada"
+                ) : (
+                  <span className="text-muted-foreground">Cualquier transmisión</span>
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+              <Command className="rounded-lg">
+                <CommandInput placeholder="Buscar transmisión..." className="h-9" />
+                <CommandList className="max-h-[280px] p-1">
+                  <CommandEmpty>No se encontró la transmisión.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all_transmissions_option"
+                      onSelect={() => {
+                        handleChange("transmission", "")
+                        setOpenTransmission(false)
+                      }}
+                      className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          filters.transmission === "" ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      Cualquier transmisión
+                    </CommandItem>
+                    {transmissions.map((transmission) => (
+                      <CommandItem
+                        key={transmission.id}
+                        value={transmission.nombre}
+                        onSelect={() => {
+                          handleChange("transmission", transmission.id.toString())
+                          setOpenTransmission(false)
+                        }}
+                        className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.transmission === transmission.id.toString() ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {transmission.nombre}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
-        {/* Segment (Dynamic Select) */}
+        {/* Segment (Popover + Command) */}
         <div className="space-y-2">
           <label className="font-semibold text-foreground">Segmento</label>
-          <Select
-            value={filters.segment}
-            onValueChange={(val) => handleChange("segment", val === "all" ? "" : val)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Cualquier segmento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Cualquier segmento</SelectItem>
-              {segments.map((s) => (
-                <SelectItem key={s.id} value={s.id.toString()}>
-                  {s.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={openSegment} onOpenChange={setOpenSegment}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openSegment}
+                className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
+              >
+                {filters.segment ? (
+                  getSegmentName(filters.segment) || "Segmento seleccionado"
+                ) : (
+                  <span className="text-muted-foreground">Cualquier segmento</span>
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+              <Command className="rounded-lg">
+                <CommandInput placeholder="Buscar segmento..." className="h-9" />
+                <CommandList className="max-h-[280px] p-1">
+                  <CommandEmpty>No se encontró el segmento.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all_segments_option"
+                      onSelect={() => {
+                        handleChange("segment", "")
+                        setOpenSegment(false)
+                      }}
+                      className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          filters.segment === "" ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      Cualquier segmento
+                    </CommandItem>
+                    {segments.map((segment) => (
+                      <CommandItem
+                        key={segment.id}
+                        value={segment.nombre}
+                        onSelect={() => {
+                          handleChange("segment", segment.id.toString())
+                          setOpenSegment(false)
+                        }}
+                        className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.segment === segment.id.toString() ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {segment.nombre}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
-        {/* State (Dynamic Select) */}
+        {/* State (Popover + Command) */}
         <div className="space-y-2">
           <label className="font-semibold text-foreground">Estado</label>
-          <Select
-            value={filters.state}
-            onValueChange={(val) => handleChange("state", val === "all" ? "" : val)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Cualquier estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Cualquier estado</SelectItem>
-              {states.map((s) => (
-                <SelectItem key={s.id} value={s.id.toString()}>
-                  {s.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={openState} onOpenChange={setOpenState}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openState}
+                className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
+              >
+                {filters.state ? (
+                  getStateName(filters.state) || "Estado seleccionado"
+                ) : (
+                  <span className="text-muted-foreground">Cualquier estado</span>
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+              <Command className="rounded-lg">
+                <CommandInput placeholder="Buscar estado..." className="h-9" />
+                <CommandList className="max-h-[280px] p-1">
+                  <CommandEmpty>No se encontró el estado.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all_states_option"
+                      onSelect={() => {
+                        handleChange("state", "")
+                        setOpenState(false)
+                      }}
+                      className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          filters.state === "" ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      Cualquier estado
+                    </CommandItem>
+                    {states.map((state) => (
+                      <CommandItem
+                        key={state.id}
+                        value={state.nombre}
+                        onSelect={() => {
+                          handleChange("state", state.id.toString())
+                          setOpenState(false)
+                        }}
+                        className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.state === state.id.toString() ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {state.nombre}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </div>

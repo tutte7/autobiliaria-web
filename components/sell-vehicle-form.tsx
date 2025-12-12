@@ -23,8 +23,13 @@ import {
 
 export default function SellVehicleForm() {
   const [brands, setBrands] = useState<Parameter[]>([])
+  const [fuels, setFuels] = useState<Parameter[]>([])
+  const [transmissions, setTransmissions] = useState<Parameter[]>([])
   const [loadingBrands, setLoadingBrands] = useState(true)
   const [openBrand, setOpenBrand] = useState(false)
+  const [openCondition, setOpenCondition] = useState(false)
+  const [openFuel, setOpenFuel] = useState(false)
+  const [openTransmission, setOpenTransmission] = useState(false)
 
   const [formData, setFormData] = useState({
     brand: "",
@@ -45,23 +50,33 @@ export default function SellVehicleForm() {
 
   const [submitted, setSubmitted] = useState(false)
 
-  // Cargar marcas al inicio
+  // Cargar catálogos al inicio
   useEffect(() => {
-    const fetchBrands = async () => {
+    const fetchCatalogs = async () => {
       try {
-        const data = await parametersService.getBrands()
-        setBrands(data)
+        const [brandsData, fuelsData, transmissionsData] = await Promise.all([
+          parametersService.getBrands(),
+          parametersService.getFuels(),
+          parametersService.getTransmissions(),
+        ])
+        setBrands(brandsData)
+        setFuels(fuelsData)
+        setTransmissions(transmissionsData)
       } catch (error) {
-        console.error("Error al cargar marcas:", error)
+        console.error("Error al cargar catálogos:", error)
       } finally {
         setLoadingBrands(false)
       }
     }
-    fetchBrands()
+    fetchCatalogs()
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -198,16 +213,52 @@ export default function SellVehicleForm() {
 
           <div className="space-y-2">
             <label className="font-semibold text-foreground">Condición *</label>
-            <select
-              name="condition"
-              value={formData.condition}
-              onChange={handleInputChange}
-              className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="nuevo">Nuevo</option>
-              <option value="usado">Usado</option>
-              <option value="seminuevo">Seminuevo</option>
-            </select>
+            <Popover open={openCondition} onOpenChange={setOpenCondition}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openCondition}
+                  className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
+                >
+                  {formData.condition === "nuevo" ? "Nuevo" : formData.condition === "usado" ? "Usado" : formData.condition === "seminuevo" ? "Seminuevo" : "Selecciona condición"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+                <Command className="rounded-lg">
+                  <CommandInput placeholder="Buscar condición..." className="h-9" />
+                  <CommandList className="max-h-[280px] p-1">
+                    <CommandEmpty>No se encontró la condición.</CommandEmpty>
+                    <CommandGroup>
+                      {[
+                        { value: "nuevo", label: "Nuevo" },
+                        { value: "usado", label: "Usado" },
+                        { value: "seminuevo", label: "Seminuevo" },
+                      ].map((condition) => (
+                        <CommandItem
+                          key={condition.value}
+                          value={condition.label}
+                          onSelect={() => {
+                            handleSelectChange("condition", condition.value)
+                            setOpenCondition(false)
+                          }}
+                          className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.condition === condition.value ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {condition.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
@@ -238,35 +289,102 @@ export default function SellVehicleForm() {
 
           <div className="space-y-2">
             <label className="font-semibold text-foreground">Combustible *</label>
-            <select
-              name="fuel"
-              value={formData.fuel}
-              onChange={handleInputChange}
-              required
-              className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Selecciona combustible</option>
-              <option value="gasolina">Gasolina</option>
-              <option value="diesel">Diésel</option>
-              <option value="hibrido">Híbrido</option>
-              <option value="electrico">Eléctrico</option>
-            </select>
+            <Popover open={openFuel} onOpenChange={setOpenFuel}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openFuel}
+                  className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
+                >
+                  {formData.fuel ? (
+                    fuels.find((f) => f.id.toString() === formData.fuel)?.nombre || "Combustible seleccionado"
+                  ) : (
+                    <span className="text-muted-foreground">Selecciona combustible</span>
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+                <Command className="rounded-lg">
+                  <CommandInput placeholder="Buscar combustible..." className="h-9" />
+                  <CommandList className="max-h-[280px] p-1">
+                    <CommandEmpty>No se encontró el combustible.</CommandEmpty>
+                    <CommandGroup>
+                      {fuels.map((fuel) => (
+                        <CommandItem
+                          key={fuel.id}
+                          value={fuel.nombre}
+                          onSelect={() => {
+                            handleSelectChange("fuel", fuel.id.toString())
+                            setOpenFuel(false)
+                          }}
+                          className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.fuel === fuel.id.toString() ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {fuel.nombre}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
             <label className="font-semibold text-foreground">Transmisión *</label>
-            <select
-              name="transmission"
-              value={formData.transmission}
-              onChange={handleInputChange}
-              required
-              className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Selecciona transmisión</option>
-              <option value="manual">Manual</option>
-              <option value="automatica">Automática</option>
-              <option value="cvt">CVT</option>
-            </select>
+            <Popover open={openTransmission} onOpenChange={setOpenTransmission}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openTransmission}
+                  className="w-full justify-between rounded-xl border-border/60 bg-background px-3 py-2.5 h-11 text-sm font-normal shadow-sm hover:bg-accent/50 transition-all"
+                >
+                  {formData.transmission ? (
+                    transmissions.find((t) => t.id.toString() === formData.transmission)?.nombre || "Transmisión seleccionada"
+                  ) : (
+                    <span className="text-muted-foreground">Selecciona transmisión</span>
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-popover" align="start">
+                <Command className="rounded-lg">
+                  <CommandInput placeholder="Buscar transmisión..." className="h-9" />
+                  <CommandList className="max-h-[280px] p-1">
+                    <CommandEmpty>No se encontró la transmisión.</CommandEmpty>
+                    <CommandGroup>
+                      {transmissions.map((transmission) => (
+                        <CommandItem
+                          key={transmission.id}
+                          value={transmission.nombre}
+                          onSelect={() => {
+                            handleSelectChange("transmission", transmission.id.toString())
+                            setOpenTransmission(false)
+                          }}
+                          className="rounded-lg cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.transmission === transmission.id.toString() ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {transmission.nombre}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
         </div>

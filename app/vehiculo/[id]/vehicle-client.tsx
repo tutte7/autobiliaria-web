@@ -6,16 +6,15 @@ import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import WhatsappCTA from "@/components/whatsapp-cta"
 import { 
-  MapPin, Phone, Mail, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, 
-  Calendar, Gauge, Fuel, Cog, Car, CarFront, Wrench, MessageCircle, ChevronDown as ChevronDownIcon 
+  ChevronLeft, ChevronRight, ChevronUp, ChevronDown, 
+  Calendar, Gauge, Fuel, CarFront, Cog, Wrench, Car
 } from "lucide-react"
 import type { ApiVehicleDetail } from "@/services/vehicles"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { Separator } from "@/components/ui/separator"
+import { VehicleContactForm } from "@/components/vehicle-contact-form"
 
 interface VehicleClientProps {
   vehicle: ApiVehicleDetail
@@ -23,9 +22,6 @@ interface VehicleClientProps {
 
 export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
   const [currentImageIdx, setCurrentImageIdx] = useState(0)
-  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "", type: "consulta" })
-  const [submitted, setSubmitted] = useState(false)
-  const [isContactOpen, setIsContactOpen] = useState(false)
 
   // Mapeo de datos para la UI
   const images = vehicle.imagenes.length > 0 
@@ -80,22 +76,6 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
     return () => el.removeEventListener("scroll", updateThumbsScroll)
   }, [])
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setContactForm((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Formulario de contacto:", contactForm)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      setContactForm({ name: "", email: "", message: "", type: "consulta" })
-      setIsContactOpen(false)
-    }, 3000)
-  }
-
   // Características destacadas
   const features = [
     vehicle.condicion_detail.nombre,
@@ -106,9 +86,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
   ].filter(Boolean) as string[];
 
   const priceFormatted = parseFloat(vehicle.precio).toLocaleString("es-AR", { minimumFractionDigits: 0 });
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP || "5491100000000"; // Fallback
-  const whatsappMessage = `Hola, me interesa el ${vehicle.titulo} que vi en la web.`;
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+  const currencyName = vehicle.moneda_detail?.nombre || vehicle.moneda_nombre || "$";
 
   return (
     <main className="min-h-screen bg-muted/10">
@@ -269,101 +247,21 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
               
               <Card className="shadow-lg border-primary/10 overflow-hidden">
                 <div className="h-2 bg-primary w-full" />
-                <CardHeader>
+                <CardHeader className="pb-4">
                   <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">Precio Contado</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-primary">{vehicle.moneda_nombre}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-primary">{currencyName}</span>
                     <span className="text-5xl font-extrabold tracking-tight">{priceFormatted}</span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  
-                  <Button className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700" asChild>
-                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle className="mr-2 h-5 w-5" />
-                      Consultar por WhatsApp
-                    </a>
-                  </Button>
-                  
-                  <Button variant="outline" className="w-full h-12 text-base">
-                    Reservar Vehículo
-                  </Button>
-
-                  <div className="pt-4">
-                     <Collapsible
-                      open={isContactOpen}
-                      onOpenChange={setIsContactOpen}
-                      className="w-full space-y-2"
-                    >
-                      <div className="flex items-center justify-center">
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-foreground">
-                            ¿Prefieres enviarnos un email?
-                            <ChevronDownIcon className={`ml-2 h-4 w-4 transition-transform duration-200 ${isContactOpen ? "rotate-180" : ""}`} />
-                          </Button>
-                        </CollapsibleTrigger>
-                      </div>
-                      <CollapsibleContent className="space-y-4 pt-2">
-                        <form onSubmit={handleFormSubmit} className="space-y-4">
-                           <div className="space-y-2">
-                            <label htmlFor="name" className="text-sm font-medium">Nombre</label>
-                            <input 
-                              id="name" name="name" 
-                              value={contactForm.name} onChange={handleFormChange}
-                              required
-                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              placeholder="Tu nombre"
-                            />
-                           </div>
-                           <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">Email</label>
-                            <input 
-                              id="email" name="email" type="email"
-                              value={contactForm.email} onChange={handleFormChange}
-                              required
-                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              placeholder="tu@email.com"
-                            />
-                           </div>
-                           <div className="space-y-2">
-                            <label htmlFor="message" className="text-sm font-medium">Mensaje</label>
-                            <textarea 
-                              id="message" name="message" 
-                              value={contactForm.message} onChange={handleFormChange}
-                              rows={3}
-                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                              placeholder="¿En qué podemos ayudarte?"
-                            />
-                           </div>
-                           <Button type="submit" className="w-full">Enviar Consulta</Button>
-                        </form>
-                         {submitted && (
-                          <div className="p-3 bg-green-50 text-green-700 text-sm rounded-md text-center font-medium border border-green-200">
-                            ¡Enviado! Te responderemos pronto.
-                          </div>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </div>
-
-                </CardContent>
+                
+                {/* Formulario de Contacto (Tabs) */}
+                <div className="px-1 pb-1">
+                  <VehicleContactForm vehicleTitle={vehicle.titulo} />
+                </div>
               </Card>
 
-              {/* Info Vendedor Mini */}
-              <div className="rounded-xl border bg-background/50 p-4 text-sm text-muted-foreground space-y-2">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <span>{vehicle.vendedor_detail.location || "Ubicación a confirmar"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-primary" />
-                  <span>{vehicle.vendedor_detail.celular}</span>
-                </div>
-                 <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-primary" />
-                  <span>{vehicle.vendedor_detail.email}</span>
-                </div>
-              </div>
+              {/* Se eliminó la card de ubicación y contacto como se solicitó */}
 
             </div>
           </div>

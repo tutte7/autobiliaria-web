@@ -31,7 +31,7 @@ export default function OpportunitiesBanner() {
 
             <Link
               href="/comprar?opportunity=true"
-              className="rounded-full border border-[#0188c8] bg-white px-6 py-3 text-sm font-semibold text-[#0188c8] transition-all hover:border-[#0188c8] hover:bg-[#0188c8] hover:text-white"
+              className="rounded-full border-2 border-white bg-white px-6 py-3 text-sm font-semibold text-[#0188c8] transition-all hover:bg-white/95 hover:scale-105 hover:shadow-2xl hover:shadow-white/20"
             >
               Ver Oportunidades
             </Link>
