@@ -185,3 +185,7 @@ export function LiveSearch({ className, placeholder = "Buscar...", onSearch }: L
     </div>
   )
 }
+
+
+
+

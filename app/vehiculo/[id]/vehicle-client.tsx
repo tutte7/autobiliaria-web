@@ -245,7 +245,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
               
-              <Card className="shadow-lg border-primary/10 overflow-hidden">
+              <Card className="shadow-lg border-primary/10 overflow-hidden py-0">
                 <div className="h-2 bg-primary w-full" />
                 <CardHeader className="pb-4">
                   <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">Precio Contado</p>
