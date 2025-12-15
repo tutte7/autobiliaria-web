@@ -126,6 +126,7 @@ export interface VehicleCard {
   id: number;
   name: string;
   price: number;
+  currency: string;
   year: number;
   km: number;
   image: string;
@@ -148,6 +149,9 @@ export interface VehicleFilters {
   km_min?: number;
   km_max?: number;
   combustible?: string | number;
+  // La API documentada filtra por `caja` (transmisión)
+  caja?: string | number;
+  // Backward-compat: algunos lugares podrían seguir usando `transmision`
   transmision?: string | number;
   segmento?: string | number;
   estado?: string | number;
@@ -165,6 +169,7 @@ function mapApiToVehicleCard(apiVehicle: ApiVehicleSummary): VehicleCard {
     id: apiVehicle.id,
     name: apiVehicle.titulo,
     price: parseFloat(apiVehicle.precio),
+    currency: apiVehicle.moneda_nombre === 'Dólar' || apiVehicle.moneda_nombre === 'USD' ? 'USD' : 'ARS',
     year: apiVehicle.anio,
     km: apiVehicle.km,
     image: apiVehicle.imagen_principal || "/placeholder.jpg",
