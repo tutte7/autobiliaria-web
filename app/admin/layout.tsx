@@ -2,20 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { 
-  SidebarProvider, 
-  SidebarInset, 
-  SidebarTrigger 
+import { Search, Bell, ExternalLink } from 'lucide-react';
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger
 } from "@/components/ui/sidebar";
-import { 
-  Breadcrumb, 
-  BreadcrumbItem, 
-  BreadcrumbLink, 
-  BreadcrumbList, 
-  BreadcrumbPage, 
-  BreadcrumbSeparator 
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { authService } from "@/services/auth";
 
@@ -28,7 +30,6 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
-  // Protección de rutas: Verificar autenticación al montar
   useEffect(() => {
     setMounted(true);
     if (!authService.isAuthenticated()) {
@@ -36,39 +37,43 @@ export default function AdminLayout({
     }
   }, [router]);
 
-  // Evitar flash de contenido no autorizado
   if (!mounted) return null;
 
-  // Generar breadcrumbs basados en la URL
   const generateBreadcrumbs = () => {
     const paths = pathname.split('/').filter(Boolean);
-    // paths[0] es 'admin'
-    
+
     return (
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+            <BreadcrumbLink
+              href="/admin"
+              className="text-gray-500 hover:text-[#0188c8] transition-colors font-medium"
+            >
+              Admin
+            </BreadcrumbLink>
           </BreadcrumbItem>
-          {paths.length > 1 && <BreadcrumbSeparator />}
+          {paths.length > 1 && <BreadcrumbSeparator className="text-gray-300" />}
           {paths.slice(1).map((path, index) => {
             const isLast = index === paths.slice(1).length - 1;
-            const href = `/admin/${paths.slice(1, index + 1).join('/')}`;
-            // Capitalizar primera letra
+            const href = `/admin/${paths.slice(1, index + 2).join('/')}`;
             const title = path.charAt(0).toUpperCase() + path.slice(1);
 
             return (
               <div key={path} className="flex items-center gap-2">
                 <BreadcrumbItem>
                   {isLast ? (
-                    <BreadcrumbPage>{title}</BreadcrumbPage>
+                    <BreadcrumbPage className="text-gray-900 font-semibold">{title}</BreadcrumbPage>
                   ) : (
-                    <>
-                      <BreadcrumbLink href={href}>{title}</BreadcrumbLink>
-                    </>
+                    <BreadcrumbLink
+                      href={href}
+                      className="text-gray-500 hover:text-[#0188c8] transition-colors font-medium"
+                    >
+                      {title}
+                    </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
-                {!isLast && <BreadcrumbSeparator />}
+                {!isLast && <BreadcrumbSeparator className="text-gray-300" />}
               </div>
             );
           })}
@@ -81,13 +86,53 @@ export default function AdminLayout({
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset className="bg-gray-50/50 min-h-screen">
-        {/* Topbar Fija */}
-        <header className="flex h-14 items-center gap-2 border-b bg-white px-4 sticky top-0 z-10">
-          <SidebarTrigger className="-ml-2 h-8 w-8 text-gray-500 hover:bg-gray-100" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          {generateBreadcrumbs()}
+        {/* Header Premium */}
+        <header className="flex h-16 items-center justify-between gap-4 border-b border-gray-100 bg-white/80 backdrop-blur-md px-6 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="-ml-2 h-9 w-9 text-gray-500 hover:bg-gray-100 hover:text-[#0188c8] rounded-lg transition-colors" />
+            <Separator orientation="vertical" className="h-6 bg-gray-200" />
+            <div className="flex items-center">
+              {generateBreadcrumbs()}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Búsqueda Global */}
+            <div className="hidden md:flex items-center">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar vehículos, vendedores..."
+                  className="h-10 w-64 pl-10 pr-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0188c8]/20 focus:border-[#0188c8] transition-all"
+                />
+                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex h-5 items-center gap-1 rounded border border-gray-200 bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-500">
+                  Ctrl+K
+                </kbd>
+              </div>
+            </div>
+
+            {/* Notificaciones */}
+            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl hover:bg-gray-100">
+              <Bell className="h-5 w-5 text-gray-500" />
+              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+            </Button>
+
+            {/* Acceso Rápido Web */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:flex h-10 rounded-xl border-gray-200 text-gray-600 hover:text-[#0188c8] hover:border-[#0188c8]/50 transition-colors"
+              asChild
+            >
+              <a href="/" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Ver Web
+              </a>
+            </Button>
+          </div>
         </header>
-        
+
         {/* Contenido Principal */}
         <main className="flex-1 p-6 md:p-8">
           <div className="mx-auto max-w-7xl">

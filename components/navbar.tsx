@@ -35,16 +35,15 @@ export default function Navbar() {
               : "bg-white/70 border-border/40 backdrop-blur-xl"
           )}
         >
-        <Link href="/" className="flex items-center gap-[10px]">
+        <Link href="/" className="flex items-center">
           <Image
-            src="/logo-autobiliaria-2.0.svg"
+            src="/logo-ab.png"
             alt="Autobiliaria"
             width={140}
-            height={35}
-            className="h-9 w-auto"
+            height={32}
+            className="h-6 w-auto"
             priority
           />
-          <span className="font-square-721 text-[#2d2a2a] text-[28px] leading-[28px]">autobiliaria</span>
         </Link>
 
         {/* Desktop Navigation */}

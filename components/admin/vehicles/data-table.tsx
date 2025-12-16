@@ -22,7 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Car } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,7 +42,7 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(), // Paginación cliente-side por ahora
+    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -52,40 +52,43 @@ export function DataTable<TData, TValue>({
       columnFilters,
     },
     initialState: {
-        pagination: {
-            pageSize: 10,
-        }
+      pagination: {
+        pageSize: 10,
+      }
     }
   });
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border bg-white">
+      {/* Tabla con estilos premium */}
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+              <TableRow
+                key={headerGroup.id}
+                className="bg-gray-50/80 hover:bg-gray-50/80 border-b border-gray-200"
+              >
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="h-12 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  <div className="flex justify-center items-center py-8">
-                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <TableCell colSpan={columns.length} className="h-32 text-center">
+                  <div className="flex flex-col items-center justify-center py-8 gap-3">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0188c8]"></div>
+                    <span className="text-sm text-gray-500">Cargando vehículos...</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -94,24 +97,25 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                    <TableCell key={cell.id} className="px-4 py-3">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No se encontraron resultados.
+                <TableCell colSpan={columns.length} className="h-32 text-center">
+                  <div className="flex flex-col items-center justify-center py-8 gap-2">
+                    <div className="p-3 rounded-full bg-gray-100">
+                      <Car className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <span className="text-gray-600 font-medium">No se encontraron vehículos</span>
+                    <span className="text-sm text-gray-400">Intenta con otros filtros de búsqueda</span>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -119,27 +123,39 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Anterior
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Siguiente
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+      {/* Paginación Premium */}
+      <div className="flex items-center justify-between py-2">
+        <span className="text-sm text-gray-500">
+          Mostrando {table.getRowModel().rows.length} de {data.length} vehículos
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="rounded-lg h-9"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Anterior
+          </Button>
+          <div className="flex items-center gap-1 px-3">
+            <span className="text-sm font-medium text-gray-700">
+              Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount() || 1}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="rounded-lg h-9"
+          >
+            Siguiente
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
-

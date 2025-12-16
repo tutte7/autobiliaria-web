@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, UploadCloud, Star, Trash2 } from 'lucide-react';
+import { Loader2, UploadCloud, Star, Trash2, Car, Wrench, DollarSign, ImageIcon } from 'lucide-react';
 import adminApi from '@/services/admin-api';
 import { toast } from 'sonner';
 
@@ -216,11 +216,16 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         
         {/* Datos Principales */}
-        <Card>
-            <CardHeader>
-                <CardTitle>Datos Principales</CardTitle>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 rounded-xl bg-[#0188c8]/10">
+                        <Car className="h-5 w-5 text-[#0188c8]" />
+                    </div>
+                    Datos Principales
+                </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
                 
                 <FormField
                     control={form.control}
@@ -337,11 +342,16 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
         </Card>
 
         {/* Detalles Técnicos */}
-        <Card>
-            <CardHeader>
-                <CardTitle>Mecánica y Estado</CardTitle>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 rounded-xl bg-amber-100">
+                        <Wrench className="h-5 w-5 text-amber-600" />
+                    </div>
+                    Mecánica y Estado
+                </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
                 <FormField
                     control={form.control}
                     name="combustible"
@@ -452,10 +462,10 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     control={form.control}
                     name="vtv"
                     render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 hover:border-[#0188c8]/30 transition-colors">
                             <div className="space-y-0.5">
-                                <FormLabel>VTV Vigente</FormLabel>
-                                <FormDescription>
+                                <FormLabel className="font-semibold text-gray-900">VTV Vigente</FormLabel>
+                                <FormDescription className="text-gray-500">
                                     ¿El vehículo tiene la VTV al día?
                                 </FormDescription>
                             </div>
@@ -463,6 +473,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                                 <Switch
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-[#0188c8]"
                                 />
                             </FormControl>
                         </FormItem>
@@ -472,11 +483,16 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
         </Card>
 
         {/* Precio y Comercial */}
-        <Card>
-            <CardHeader>
-                <CardTitle>Comercial</CardTitle>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 rounded-xl bg-emerald-100">
+                        <DollarSign className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    Comercial
+                </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
                 <div className="flex gap-4">
                      <FormField
                         control={form.control}
@@ -544,10 +560,10 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     control={form.control}
                     name="mostrar_en_web"
                     render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 hover:border-[#0188c8]/30 transition-colors">
                             <div className="space-y-0.5">
-                                <FormLabel>Mostrar en Web</FormLabel>
-                                <FormDescription>
+                                <FormLabel className="font-semibold text-gray-900">Mostrar en Web</FormLabel>
+                                <FormDescription className="text-gray-500">
                                     Visible públicamente en el catálogo.
                                 </FormDescription>
                             </div>
@@ -555,6 +571,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                                 <Switch
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-[#0188c8]"
                                 />
                             </FormControl>
                         </FormItem>
@@ -565,10 +582,10 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     control={form.control}
                     name="destacar_en_web"
                     render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 hover:border-amber-400/50 transition-colors">
                             <div className="space-y-0.5">
-                                <FormLabel>Destacado</FormLabel>
-                                <FormDescription>
+                                <FormLabel className="font-semibold text-gray-900">Destacado</FormLabel>
+                                <FormDescription className="text-gray-500">
                                     Aparecerá en la sección de destacados.
                                 </FormDescription>
                             </div>
@@ -576,6 +593,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                                 <Switch
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-amber-500"
                                 />
                             </FormControl>
                         </FormItem>
@@ -585,25 +603,34 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
         </Card>
 
         {/* Imágenes */}
-        <Card>
-            <CardHeader>
-                <CardTitle>Imágenes</CardTitle>
-                <p className="text-sm text-muted-foreground">La primera imagen será la principal (portada).</p>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 rounded-xl bg-violet-100">
+                        <ImageIcon className="h-5 w-5 text-violet-600" />
+                    </div>
+                    Imágenes
+                </CardTitle>
+                <p className="text-sm text-gray-500 ml-12">La primera imagen será la principal (portada).</p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
                 <div className="grid gap-6">
                     <div className="flex items-center justify-center w-full">
-                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 border-gray-300">
+                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50/50 hover:bg-[#0188c8]/5 border-gray-300 hover:border-[#0188c8]/50 transition-all duration-200 group">
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <UploadCloud className="w-8 h-8 mb-2 text-gray-500" />
-                                <p className="text-sm text-gray-500"><span className="font-semibold">Click para subir</span> o arrastrar fotos</p>
-                                <p className="text-xs text-gray-500">JPG, PNG (MAX. 15 fotos)</p>
+                                <div className="p-3 rounded-full bg-[#0188c8]/10 mb-3 group-hover:bg-[#0188c8]/20 transition-colors">
+                                    <UploadCloud className="w-8 h-8 text-[#0188c8]" />
+                                </div>
+                                <p className="text-sm text-gray-600">
+                                    <span className="font-semibold text-[#0188c8]">Click para subir</span> o arrastra las fotos
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1">JPG, PNG (MAX. 15 fotos)</p>
                             </div>
-                            <input 
-                                id="dropzone-file" 
-                                type="file" 
-                                className="hidden" 
-                                multiple 
+                            <input
+                                id="dropzone-file"
+                                type="file"
+                                className="hidden"
+                                multiple
                                 accept="image/*"
                                 onChange={handleImageSelect}
                             />
@@ -662,11 +689,20 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
             </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-4">
-            <Button variant="outline" type="button" onClick={() => window.history.back()}>
+        <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
+            <Button
+                variant="outline"
+                type="button"
+                onClick={() => window.history.back()}
+                className="rounded-xl px-6"
+            >
                 Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-xl px-8 bg-gradient-to-r from-[#0188c8] to-[#0188c8]/90 shadow-md shadow-[#0188c8]/25 hover:shadow-lg hover:shadow-[#0188c8]/30"
+            >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Guardar Cambios
             </Button>
