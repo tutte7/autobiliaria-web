@@ -13,19 +13,22 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Send } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.autobiliaria.cloud';
+
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres" }),
   email: z.string().email({ message: "Ingresa un email válido" }),
   phone: z.string().min(6, { message: "Ingresa un teléfono válido" }),
-  message: z.string().optional(),
+  message: z.string().min(1, { message: "El mensaje es requerido" }),
   type: z.enum(["consultation", "reservation"]),
 })
 
 interface VehicleContactFormProps {
   vehicleTitle: string
+  vehicleId: number
 }
 
-export function VehicleContactForm({ vehicleTitle }: VehicleContactFormProps) {
+export function VehicleContactForm({ vehicleTitle, vehicleId }: VehicleContactFormProps) {
   const [activeTab, setActiveTab] = useState<"consultation" | "reservation">("consultation")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -49,17 +52,46 @@ export function VehicleContactForm({ vehicleTitle }: VehicleContactFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
-    
-    // Simulación de envío a API
+
+    // Map form type to API type ('consulta' or 'reserva')
+    const tipoApi = values.type === "consultation" ? "consulta" : "reserva";
+
+    // Build payload according to consultas.md documentation
+    const payload = {
+      nombre: values.name,
+      email: values.email,
+      telefono: values.phone,
+      mensaje: values.message || `Consulta sobre ${vehicleTitle}`,
+      tipo: tipoApi,
+      vehiculo: vehicleId,
+    };
+
+    const endpoint = `${API_URL}/api/consultas/`;
+    console.log('Enviando consulta a:', endpoint, payload);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      console.log("Formulario enviado:", values)
-      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessages = Object.values(errorData).flat().join(', ');
+        throw new Error(errorMessages || `Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Consulta creada exitosamente:', data);
+
       toast({
         title: values.type === "consultation" ? "Consulta enviada" : "Solicitud de reserva enviada",
         description: "Nos pondremos en contacto contigo a la brevedad.",
       })
-      
+
       form.reset({
         name: "",
         email: "",
@@ -67,10 +99,11 @@ export function VehicleContactForm({ vehicleTitle }: VehicleContactFormProps) {
         message: "",
         type: activeTab,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error enviando consulta:', error);
       toast({
         title: "Error",
-        description: "Hubo un problema al enviar el formulario. Intenta nuevamente.",
+        description: error.message || "Hubo un problema al enviar el formulario. Intenta nuevamente.",
         variant: "destructive",
       })
     } finally {
@@ -139,14 +172,14 @@ export function VehicleContactForm({ vehicleTitle }: VehicleContactFormProps) {
                   <FormItem>
                     <FormLabel>Mensaje (Opcional)</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder={
-                          activeTab === "consultation" 
-                            ? `Hola, estoy interesado en el ${vehicleTitle}...` 
+                          activeTab === "consultation"
+                            ? `Hola, estoy interesado en el ${vehicleTitle}...`
                             : `Hola, quisiera reservar el ${vehicleTitle}. Por favor contáctenme para coordinar.`
                         }
-                        className="resize-none" 
-                        {...field} 
+                        className="resize-none"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -167,7 +200,7 @@ export function VehicleContactForm({ vehicleTitle }: VehicleContactFormProps) {
                   </>
                 )}
               </Button>
-              
+
               <p className="text-xs text-center text-muted-foreground mt-2">
                 Al enviar aceptas nuestros términos y condiciones de privacidad.
               </p>

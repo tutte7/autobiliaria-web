@@ -5,8 +5,8 @@ import { useState, useRef, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import WhatsappCTA from "@/components/whatsapp-cta"
-import { 
-  ChevronLeft, ChevronRight, ChevronUp, ChevronDown, 
+import {
+  ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Calendar, Gauge, Fuel, CarFront, Cog, Wrench, Car
 } from "lucide-react"
 import type { ApiVehicleDetail } from "@/services/vehicles"
@@ -24,7 +24,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
   const [currentImageIdx, setCurrentImageIdx] = useState(0)
 
   // Mapeo de datos para la UI
-  const images = vehicle.imagenes.length > 0 
+  const images = vehicle.imagenes.length > 0
     ? vehicle.imagenes.sort((a, b) => a.orden - b.orden).map(img => img.imagen_url)
     : ["/placeholder.svg"];
 
@@ -58,7 +58,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
 
   const [thumbsAtTop, setThumbsAtTop] = useState(true)
   const [thumbsAtBottom, setThumbsAtBottom] = useState(false)
-  
+
   const updateThumbsScroll = () => {
     const el = thumbsRef.current
     if (!el) return
@@ -94,51 +94,48 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
 
       <div className="max-w-[1200px] mx-auto pt-28 pb-20 px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Columna Izquierda: Info Principal */}
           <div className="lg:col-span-2 space-y-8">
-            
+
             {/* Header Mobile (Solo visible en movil para jerarquía visual) */}
             <div className="lg:hidden space-y-2">
               <h1 className="text-2xl font-bold">{vehicle.titulo}</h1>
-               <Badge variant={vehicle.disponible ? "default" : "destructive"}>
-                  {vehicle.disponible ? "Disponible" : (vehicle.vendido ? "Vendido" : "Reservado")}
-                </Badge>
+              <Badge variant={vehicle.disponible ? "default" : "destructive"}>
+                {vehicle.disponible ? "Disponible" : (vehicle.vendido ? "Vendido" : "Reservado")}
+              </Badge>
             </div>
 
             {/* Galería */}
             <div className="grid gap-4 md:grid-cols-[100px_1fr] h-[400px] md:h-[500px]">
-               {/* Thumbs Desktop (Vertical) */}
+              {/* Thumbs Desktop (Vertical) */}
               <div className="hidden md:flex md:flex-col relative h-full overflow-hidden">
                 <button
                   type="button"
                   onClick={() => scrollThumbs("up")}
-                  className={`absolute top-0 left-1/2 z-10 -translate-x-1/2 w-full h-8 flex items-center justify-center bg-gradient-to-b from-background/80 to-transparent ${
-                    thumbsAtTop ? "opacity-0 pointer-events-none" : ""
-                  }`}
+                  className={`absolute top-0 left-1/2 z-10 -translate-x-1/2 w-full h-8 flex items-center justify-center bg-gradient-to-b from-background/80 to-transparent ${thumbsAtTop ? "opacity-0 pointer-events-none" : ""
+                    }`}
                 >
                   <ChevronUp size={16} />
                 </button>
                 <div ref={thumbsRef} onScroll={updateThumbsScroll} className="flex h-full flex-col gap-2 overflow-y-auto pr-1 scrollbar-hide py-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={`vertical-thumb-${idx}`}
-                    type="button"
-                    onClick={() => setCurrentImageIdx(idx)}
-                    className={`relative rounded-lg overflow-hidden border-2 transition-all h-20 w-full flex-shrink-0 ${
-                      idx === currentImageIdx ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <img src={img} alt={`Miniatura ${idx + 1}`} className="h-full w-full object-cover" />
-                  </button>
-                ))}
+                  {images.map((img, idx) => (
+                    <button
+                      key={`vertical-thumb-${idx}`}
+                      type="button"
+                      onClick={() => setCurrentImageIdx(idx)}
+                      className={`relative rounded-lg overflow-hidden border-2 transition-all h-20 w-full flex-shrink-0 ${idx === currentImageIdx ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
+                        }`}
+                    >
+                      <img src={img} alt={`Miniatura ${idx + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
                 </div>
                 <button
                   type="button"
                   onClick={() => scrollThumbs("down")}
-                   className={`absolute bottom-0 left-1/2 z-10 -translate-x-1/2 w-full h-8 flex items-center justify-center bg-gradient-to-t from-background/80 to-transparent ${
-                    thumbsAtBottom ? "opacity-0 pointer-events-none" : ""
-                  }`}
+                  className={`absolute bottom-0 left-1/2 z-10 -translate-x-1/2 w-full h-8 flex items-center justify-center bg-gradient-to-t from-background/80 to-transparent ${thumbsAtBottom ? "opacity-0 pointer-events-none" : ""
+                    }`}
                 >
                   <ChevronDown size={16} />
                 </button>
@@ -151,7 +148,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
                   alt={vehicle.titulo}
                   className="h-full w-full object-cover"
                 />
-                 {images.length > 1 && (
+                {images.length > 1 && (
                   <>
                     <button
                       type="button"
@@ -171,16 +168,15 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
                 )}
               </div>
             </div>
-             {/* Thumbs Mobile (Horizontal) */}
-             <div className="flex gap-2 overflow-x-auto pb-2 md:hidden">
+            {/* Thumbs Mobile (Horizontal) */}
+            <div className="flex gap-2 overflow-x-auto pb-2 md:hidden">
               {images.map((img, idx) => (
                 <button
                   key={`mobile-thumb-${idx}`}
                   type="button"
                   onClick={() => setCurrentImageIdx(idx)}
-                  className={`relative rounded-lg overflow-hidden border-2 transition-all h-16 w-24 flex-shrink-0 ${
-                    idx === currentImageIdx ? "border-primary" : "border-transparent opacity-70"
-                  }`}
+                  className={`relative rounded-lg overflow-hidden border-2 transition-all h-16 w-24 flex-shrink-0 ${idx === currentImageIdx ? "border-primary" : "border-transparent opacity-70"
+                    }`}
                 >
                   <img src={img} alt={`Miniatura ${idx + 1}`} className="h-full w-full object-cover" />
                 </button>
@@ -204,7 +200,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
             <section>
               <h2 className="text-xl font-semibold mb-4">Ficha Técnica</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 {detailedSpecs.map((spec) => {
+                {detailedSpecs.map((spec) => {
                   const Icon = specIcons[spec.label] || Wrench
                   return (
                     <div key={spec.label} className="flex flex-col items-center text-center p-4 rounded-xl bg-card border shadow-sm hover:shadow-md transition-shadow">
@@ -217,11 +213,11 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
               </div>
             </section>
 
-             {/* Descripción */}
+            {/* Descripción */}
             <section>
               <h2 className="text-xl font-semibold mb-4">Descripción</h2>
               <div className="bg-card border rounded-xl p-6 shadow-sm">
-                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {vehicle.comentario_carga || "Sin descripción disponible."}
                 </p>
               </div>
@@ -229,14 +225,14 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
 
             {/* Características */}
             <section>
-               <h2 className="text-xl font-semibold mb-4">Características</h2>
-               <div className="flex flex-wrap gap-2">
-                 {features.map((feature, idx) => (
-                   <Badge key={idx} variant="secondary" className="px-3 py-1 text-sm font-normal">
-                     {feature}
-                   </Badge>
-                 ))}
-               </div>
+              <h2 className="text-xl font-semibold mb-4">Características</h2>
+              <div className="flex flex-wrap gap-2">
+                {features.map((feature, idx) => (
+                  <Badge key={idx} variant="secondary" className="px-3 py-1 text-sm font-normal">
+                    {feature}
+                  </Badge>
+                ))}
+              </div>
             </section>
 
           </div>
@@ -244,7 +240,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
           {/* Columna Derecha: Sticky Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
-              
+
               <Card className="shadow-lg border-primary/10 overflow-hidden py-0">
                 <div className="h-2 bg-primary w-full" />
                 <CardHeader className="pb-4">
@@ -254,10 +250,10 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
                     <span className="text-5xl font-extrabold tracking-tight">{priceFormatted}</span>
                   </div>
                 </CardHeader>
-                
+
                 {/* Formulario de Contacto (Tabs) */}
                 <div className="px-1 pb-1">
-                  <VehicleContactForm vehicleTitle={vehicle.titulo} />
+                  <VehicleContactForm vehicleTitle={vehicle.titulo} vehicleId={vehicle.id} />
                 </div>
               </Card>
 
@@ -265,7 +261,7 @@ export default function VehicleDetailClient({ vehicle }: VehicleClientProps) {
 
             </div>
           </div>
-          
+
         </div>
       </div>
       <Footer />

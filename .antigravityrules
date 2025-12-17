@@ -1,0 +1,50 @@
+# Autobiliaria Frontend Rules
+
+## 🚨 REGLA PRINCIPAL: Documentación del Backend
+
+Antes de consumir CUALQUIER endpoint del backend, DEBES leer el archivo de documentación correspondiente en la carpeta `/docs/`:
+
+| Endpoint | Documentación |
+|----------|---------------|
+| `/api/consultas/` | `docs/consultas.md` |
+| `/api/publicaciones/` | `docs/publicaciones.md` |
+| `/api/vehiculos/` | `docs/vehiculos.md` |
+| `/api/parametros/` | `docs/parametros.md` |
+| `/api/vendedores/` | `docs/vendedores.md` |
+
+## ❌ PROHIBIDO
+
+- **NO adivinar nombres de propiedades JSON**
+  - ❌ `vehiculo.nombre` (inventado)
+  - ✅ `vehiculo_titulo` (según docs)
+  
+- **NO asumir estructuras de datos**
+  - ❌ Asumir que hay un objeto anidado `vehiculo: { titulo: "..." }`
+  - ✅ Verificar que es un campo plano `vehiculo_titulo: "..."`
+
+- **NO usar nombres de campos en español "traducidos"**
+  - ❌ `kilometraje` (inventado)
+  - ✅ `km` (según docs)
+
+## ✅ PROCESO CORRECTO
+
+1. Leer la documentación del endpoint
+2. Identificar los campos exactos de la respuesta JSON
+3. Crear interfaces TypeScript que coincidan EXACTAMENTE
+4. Usar los nombres de campos tal cual aparecen en la documentación
+
+## Campos Comunes a Verificar
+
+### Consultas (`/api/consultas/`)
+- `vehiculo_titulo` - título del vehículo (string)
+- `vehiculo_patente` - patente del vehículo (string)
+- `tipo_display` - tipo formateado (string)
+- `leida` / `atendida` - estados booleanos
+
+### Publicaciones (`/api/publicaciones/`)
+- `marca_nombre` / `modelo_nombre` - nombres de marca y modelo (strings)
+- `km` - kilometraje (integer, NO "kilometraje")
+- `nombre` - nombre del cliente (string, NO "nombre_cliente")
+- `estado` / `estado_display` - estado de la publicación
+- `cant_imagenes` - cantidad de imágenes en listado
+- `imagenes[].imagen_url` - URL completa de imagen en detalle
