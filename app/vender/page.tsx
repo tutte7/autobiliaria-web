@@ -13,8 +13,8 @@ export default function VenderPage() {
         <div className="absolute -left-24 top-12 h-56 w-56 rounded-full bg-white/10 blur-3xl" aria-hidden="true" />
         <div className="absolute -right-28 bottom-0 h-64 w-64 rounded-full bg-primary/30 blur-[120px]" aria-hidden="true" />
         <div className="mx-auto max-w-3xl px-4 space-y-3 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold">Publica tu Vehículo</h1>
-          <p className="text-lg opacity-90">Vende tu auto de forma rápida y segura</p>
+          <h1 className="text-4xl md:text-5xl font-bold">Vendé tu Auto con Nosotros</h1>
+          <p className="text-lg opacity-90">Publicá tu vehículo y dejá que nuestros asesores te contacten</p>
         </div>
       </section>
 

@@ -116,7 +116,7 @@ export function PublicacionSheet({
     return (
         <>
             <Sheet open={open} onOpenChange={onOpenChange}>
-                <SheetContent className="sm:max-w-xl overflow-y-auto">
+                <SheetContent className="sm:max-w-xl overflow-y-auto p-6">
                     <SheetHeader className="pb-4 border-b">
                         <div className="flex items-center gap-2">
                             {getStatusBadge()}

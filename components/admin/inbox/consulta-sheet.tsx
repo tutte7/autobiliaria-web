@@ -55,7 +55,7 @@ export function ConsultaSheet({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-lg overflow-y-auto">
+            <SheetContent className="sm:max-w-lg overflow-y-auto p-6">
                 <SheetHeader className="pb-4 border-b">
                     <div className="flex items-center gap-2">
                         <Badge
