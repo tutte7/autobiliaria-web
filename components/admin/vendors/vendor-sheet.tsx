@@ -48,7 +48,7 @@ interface VendorSheetProps {
     vendedor: Vendedor | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
+    onSuccess: (vendedor?: Vendedor) => void;
 }
 
 export function VendorSheet({ vendedor, open, onOpenChange, onSuccess }: VendorSheetProps) {
@@ -105,14 +105,16 @@ export function VendorSheet({ vendedor, open, onOpenChange, onSuccess }: VendorS
     const onSubmit = async (data: VendedorFormData) => {
         try {
             if (isEditMode) {
-                await adminApi.patch(`/api/vendedores/${vendedor.id}/`, data);
+                const response = await adminApi.patch(`/api/vendedores/${vendedor.id}/`, data);
                 toast.success('Vendedor actualizado correctamente');
+                onOpenChange(false);
+                onSuccess(response.data);
             } else {
-                await adminApi.post('/api/vendedores/', data);
+                const response = await adminApi.post('/api/vendedores/', data);
                 toast.success('Vendedor creado correctamente');
+                onOpenChange(false);
+                onSuccess(response.data);
             }
-            onOpenChange(false);
-            onSuccess();
         } catch (error: any) {
             console.error('Error saving vendedor:', error);
             const errorMessage = error.response?.data?.detail ||
@@ -125,7 +127,7 @@ export function VendorSheet({ vendedor, open, onOpenChange, onSuccess }: VendorS
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-lg overflow-y-auto">
+            <SheetContent className="sm:max-w-lg overflow-y-auto p-6">
                 <SheetHeader className="pb-4 border-b">
                     <SheetTitle className="text-xl flex items-center gap-2">
                         {isEditMode ? (

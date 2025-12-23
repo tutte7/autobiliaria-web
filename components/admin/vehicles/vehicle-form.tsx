@@ -21,32 +21,60 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, UploadCloud, Star, Trash2, Car, Wrench, DollarSign, ImageIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Loader2, UploadCloud, Star, Trash2, Car, Wrench, DollarSign, ImageIcon, Check, ChevronsUpDown, Tag, FileText, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import adminApi from '@/services/admin-api';
 import { toast } from 'sonner';
+import { VendorSheet } from '@/components/admin/vendors/vendor-sheet';
+
+// --- Tipos de Vehículo (constante local) ---
+const TIPOS_VEHICULO = [
+  { id: 'auto', nombre: 'Auto' },
+  { id: 'camioneta', nombre: 'Camioneta' },
+  { id: 'camion', nombre: 'Camión' },
+  { id: 'moto', nombre: 'Moto' },
+];
 
 // --- Zod Schema ---
 const vehicleSchema = z.object({
+  // Datos principales
+  tipo_vehiculo: z.string().default('auto'),
   marca: z.string().min(1, 'Seleccione una marca'),
   modelo: z.string().min(1, 'Seleccione un modelo'),
   version: z.string().optional(),
   anio: z.coerce.number().min(1900, 'Año inválido').max(new Date().getFullYear() + 1, 'Año inválido'),
   patente: z.string().min(6, 'Mínimo 6 caracteres').toUpperCase(),
   color: z.string().min(1, 'Color requerido'),
-  precio: z.coerce.number().min(0, 'El precio no puede ser negativo'),
-  moneda: z.string().min(1, 'Seleccione moneda'),
+  // Segmentos
+  segmento1: z.string().optional(),
+  segmento2: z.string().optional(),
+  // Mecánica y estado
   combustible: z.string().min(1, 'Seleccione combustible'),
   caja: z.string().min(1, 'Seleccione caja'),
+  km: z.coerce.number().min(0).default(0),
   estado: z.string().min(1, 'Seleccione estado'),
   condicion: z.string().min(1, 'Seleccione condición'),
-  vendedor_dueno: z.string().min(1, 'Seleccione vendedor'),
-  km: z.coerce.number().min(0).default(0),
   vtv: z.boolean().default(false),
+  cant_duenos: z.coerce.number().min(1, 'Mínimo 1 dueño').default(1),
+  plan_ahorro: z.boolean().default(false),
+  // Comercial
+  moneda: z.string().min(1, 'Seleccione moneda'),
+  precio: z.coerce.number().min(0, 'El precio no puede ser negativo'),
+  porcentaje_financiacion: z.coerce.number().min(0).max(100).optional().nullable(),
+  vendedor_dueno: z.string().min(1, 'Seleccione vendedor'),
   mostrar_en_web: z.boolean().default(true),
   destacar_en_web: z.boolean().default(false),
+  oportunidad: z.boolean().default(false),
+  oportunidad_grupo: z.boolean().default(false),
+  reventa: z.boolean().default(false),
+  // Notas internas
+  comentario_carga: z.string().optional(),
 });
 
 export type VehicleFormValues = z.infer<typeof vehicleSchema>;
@@ -74,12 +102,19 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
   // --- Estados de Parámetros ---
   const [marcas, setMarcas] = useState<Parameter[]>([]);
   const [modelos, setModelos] = useState<Parameter[]>([]);
+  const [segmentos, setSegmentos] = useState<Parameter[]>([]);
   const [combustibles, setCombustibles] = useState<Parameter[]>([]);
   const [cajas, setCajas] = useState<Parameter[]>([]);
   const [estados, setEstados] = useState<Parameter[]>([]);
   const [condiciones, setCondiciones] = useState<Parameter[]>([]);
   const [monedas, setMonedas] = useState<Parameter[]>([]);
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
+
+  // --- Estado para Combobox de Marca ---
+  const [openMarca, setOpenMarca] = useState(false);
+
+  // --- Estado para VendorSheet ---
+  const [showVendorSheet, setShowVendorSheet] = useState(false);
   
   // --- Estado de Imágenes ---
   // Imágenes que YA existen en el servidor
@@ -98,13 +133,23 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
   const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
+      tipo_vehiculo: 'auto',
       km: 0,
       vtv: false,
+      cant_duenos: 1,
+      plan_ahorro: false,
       mostrar_en_web: true,
       destacar_en_web: false,
+      oportunidad: false,
+      oportunidad_grupo: false,
+      reventa: false,
       version: '',
       color: '',
       patente: '',
+      segmento1: '',
+      segmento2: '',
+      porcentaje_financiacion: null,
+      comentario_carga: '',
       ...initialData,
     },
   });
@@ -129,8 +174,9 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
   useEffect(() => {
     const fetchParameters = async () => {
       try {
-        const [m, c, ca, e, co, mo, v] = await Promise.all([
+        const [m, s, c, ca, e, co, mo, v] = await Promise.all([
           adminApi.get('/api/parametros/marcas/?activo=true'),
+          adminApi.get('/api/parametros/segmentos/'),
           adminApi.get('/api/parametros/combustibles/'),
           adminApi.get('/api/parametros/cajas/'),
           adminApi.get('/api/parametros/estados/'),
@@ -140,6 +186,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
         ]);
 
         setMarcas(m.data);
+        setSegmentos(s.data);
         setCombustibles(c.data);
         setCajas(ca.data);
         setEstados(e.data);
@@ -153,6 +200,16 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
     };
     fetchParameters();
   }, []);
+
+  // --- Función para recargar vendedores ---
+  const fetchVendedores = async () => {
+    try {
+      const res = await adminApi.get('/api/vendedores/?activo=true');
+      setVendedores(res.data);
+    } catch (error) {
+      console.error('Error cargando vendedores:', error);
+    }
+  };
 
   // --- Fetch Models ---
   useEffect(() => {
@@ -212,12 +269,13 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
   };
 
   return (
+    <>
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         
         {/* Datos Principales */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow pt-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white py-4 !pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg">
                     <div className="p-2 rounded-xl bg-[#0188c8]/10">
                         <Car className="h-5 w-5 text-[#0188c8]" />
@@ -225,23 +283,23 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     Datos Principales
                 </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-                
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+
                 <FormField
                     control={form.control}
-                    name="marca"
+                    name="tipo_vehiculo"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Marca</FormLabel>
+                            <FormLabel>Tipo de Vehículo</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                 <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar Marca" />
+                                        <SelectValue placeholder="Seleccionar Tipo" />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {marcas.map(m => (
-                                        <SelectItem key={m.id} value={m.id.toString()}>{m.nombre}</SelectItem>
+                                    {TIPOS_VEHICULO.map(t => (
+                                        <SelectItem key={t.id} value={t.id}>{t.nombre}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -252,10 +310,61 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
 
                 <FormField
                     control={form.control}
+                    name="marca"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Marca <span className="text-red-500">*</span></FormLabel>
+                            <Popover open={openMarca} onOpenChange={setOpenMarca}>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={openMarca}
+                                            className={cn("w-full justify-between font-normal", !field.value && "text-muted-foreground")}
+                                        >
+                                            {field.value
+                                                ? marcas.find((m) => m.id.toString() === field.value)?.nombre
+                                                : "Buscar marca..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Buscar marca..." />
+                                        <CommandList>
+                                            <CommandEmpty>No se encontró la marca.</CommandEmpty>
+                                            <CommandGroup>
+                                                {marcas.map((m) => (
+                                                    <CommandItem
+                                                        key={m.id}
+                                                        value={m.nombre}
+                                                        onSelect={() => {
+                                                            field.onChange(m.id.toString())
+                                                            setOpenMarca(false)
+                                                        }}
+                                                    >
+                                                        <Check className={cn("mr-2 h-4 w-4", field.value === m.id.toString() ? "opacity-100" : "opacity-0")} />
+                                                        {m.nombre}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
                     name="modelo"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Modelo</FormLabel>
+                            <FormLabel>Modelo <span className="text-red-500">*</span></FormLabel>
                             <Select 
                                 onValueChange={field.onChange} 
                                 value={field.value?.toString()}
@@ -296,7 +405,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     name="anio"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Año</FormLabel>
+                            <FormLabel>Año <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input type="number" {...field} value={field.value || ''} />
                             </FormControl>
@@ -310,7 +419,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     name="patente"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Patente</FormLabel>
+                            <FormLabel>Patente <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input 
                                     {...field} 
@@ -329,7 +438,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     name="color"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Color</FormLabel>
+                            <FormLabel>Color <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input placeholder="Ej: Blanco" {...field} value={field.value || ''} />
                             </FormControl>
@@ -341,23 +450,96 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
             </CardContent>
         </Card>
 
-        {/* Detalles Técnicos */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        {/* Segmentos */}
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow pt-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white py-4 !pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg">
-                    <div className="p-2 rounded-xl bg-amber-100">
-                        <Wrench className="h-5 w-5 text-amber-600" />
+                    <div className="p-2 rounded-xl bg-emerald-100">
+                        <Tag className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    Segmentos
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6">
+                <FormField
+                    control={form.control}
+                    name="segmento1"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Segmento Principal</FormLabel>
+                            <Select
+                                onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                                value={field.value?.toString() || 'none'}
+                            >
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccionar Segmento" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="none">Sin segmento</SelectItem>
+                                    {segmentos.map(s => (
+                                        <SelectItem key={s.id} value={s.id.toString()}>{s.nombre}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormDescription className="text-gray-500">
+                                Ej: SUV, Sedan, Hatchback
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="segmento2"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Segmento Secundario (Opcional)</FormLabel>
+                            <Select
+                                onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                                value={field.value?.toString() || 'none'}
+                            >
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccionar Segmento" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="none">Sin segmento</SelectItem>
+                                    {segmentos.map(s => (
+                                        <SelectItem key={s.id} value={s.id.toString()}>{s.nombre}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormDescription className="text-gray-500">
+                                Categoría adicional si aplica
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </CardContent>
+        </Card>
+
+        {/* Detalles Técnicos */}
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow pt-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white py-4 !pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 rounded-xl bg-[#0188c8]/10">
+                        <Wrench className="h-5 w-5 text-[#0188c8]" />
                     </div>
                     Mecánica y Estado
                 </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
                 <FormField
                     control={form.control}
                     name="combustible"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Combustible</FormLabel>
+                            <FormLabel>Combustible <span className="text-red-500">*</span></FormLabel>
                             <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                 <FormControl>
                                     <SelectTrigger>
@@ -380,7 +562,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     name="caja"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Caja</FormLabel>
+                            <FormLabel>Caja <span className="text-red-500">*</span></FormLabel>
                             <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                 <FormControl>
                                     <SelectTrigger>
@@ -417,7 +599,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     name="estado"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Estado</FormLabel>
+                            <FormLabel>Estado <span className="text-red-500">*</span></FormLabel>
                             <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                 <FormControl>
                                     <SelectTrigger>
@@ -440,7 +622,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     name="condicion"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Condición</FormLabel>
+                            <FormLabel>Condición <span className="text-red-500">*</span></FormLabel>
                             <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                 <FormControl>
                                     <SelectTrigger>
@@ -458,33 +640,61 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     )}
                 />
 
-                 <FormField
+                <FormField
                     control={form.control}
-                    name="vtv"
+                    name="cant_duenos"
                     render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 hover:border-[#0188c8]/30 transition-colors">
-                            <div className="space-y-0.5">
-                                <FormLabel className="font-semibold text-gray-900">VTV Vigente</FormLabel>
-                                <FormDescription className="text-gray-500">
-                                    ¿El vehículo tiene la VTV al día?
-                                </FormDescription>
-                            </div>
+                        <FormItem>
+                            <FormLabel>Cantidad de Dueños</FormLabel>
                             <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    className="data-[state=checked]:bg-[#0188c8]"
-                                />
+                                <Input type="number" min={1} {...field} value={field.value || 1} />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
+
+                {/* Switches de Mecánica en grid compacto */}
+                <div className="md:col-span-3 grid grid-cols-2 gap-3">
+                    <FormField
+                        control={form.control}
+                        name="vtv"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                                <FormLabel className="text-sm font-medium cursor-pointer">VTV Vigente</FormLabel>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-[#0188c8]"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="plan_ahorro"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                                <FormLabel className="text-sm font-medium cursor-pointer">Plan de Ahorro</FormLabel>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-[#0188c8]"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
             </CardContent>
         </Card>
 
         {/* Precio y Comercial */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow pt-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white py-4 !pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg">
                     <div className="p-2 rounded-xl bg-emerald-100">
                         <DollarSign className="h-5 w-5 text-emerald-600" />
@@ -492,14 +702,14 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                     Comercial
                 </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6">
                 <div className="flex gap-4">
                      <FormField
                         control={form.control}
                         name="moneda"
                         render={({ field }) => (
                             <FormItem className="w-32">
-                                <FormLabel>Moneda</FormLabel>
+                                <FormLabel>Moneda <span className="text-red-500">*</span></FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -521,7 +731,7 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                         name="precio"
                         render={({ field }) => (
                             <FormItem className="flex-1">
-                                <FormLabel>Precio</FormLabel>
+                                <FormLabel>Precio <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                     <Input type="number" {...field} value={field.value || 0} />
                                 </FormControl>
@@ -533,24 +743,25 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
 
                 <FormField
                     control={form.control}
-                    name="vendedor_dueno"
+                    name="porcentaje_financiacion"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Vendedor / Dueño</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar Vendedor" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {vendedores.map(v => (
-                                        <SelectItem key={v.id} value={v.id.toString()}>
-                                            {v.full_name} ({v.dni})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <FormLabel>% Financiación (Opcional)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    step={0.01}
+                                    placeholder="0"
+                                    {...field}
+                                    value={field.value ?? ''}
+                                    onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                                />
+                            </FormControl>
+                            <FormDescription className="text-gray-500">
+                                Porcentaje adicional al precio por financiación
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -558,44 +769,155 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
 
                 <FormField
                     control={form.control}
-                    name="mostrar_en_web"
+                    name="vendedor_dueno"
                     render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 hover:border-[#0188c8]/30 transition-colors">
-                            <div className="space-y-0.5">
-                                <FormLabel className="font-semibold text-gray-900">Mostrar en Web</FormLabel>
-                                <FormDescription className="text-gray-500">
-                                    Visible públicamente en el catálogo.
-                                </FormDescription>
+                        <FormItem>
+                            <FormLabel>Vendedor / Dueño <span className="text-red-500">*</span></FormLabel>
+                            <div className="flex gap-2">
+                                <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger className="flex-1">
+                                            <SelectValue placeholder="Seleccionar Vendedor" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {vendedores.map(v => (
+                                            <SelectItem key={v.id} value={v.id.toString()}>
+                                                {v.full_name} ({v.dni})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setShowVendorSheet(true)}
+                                    title="Agregar nuevo vendedor"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
                             </div>
-                            <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    className="data-[state=checked]:bg-[#0188c8]"
-                                />
-                            </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
 
+                {/* Switches de Visibilidad en grid compacto */}
+                <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <FormField
+                        control={form.control}
+                        name="mostrar_en_web"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                                <FormLabel className="text-sm font-medium cursor-pointer">Mostrar en Web</FormLabel>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-[#0188c8]"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="destacar_en_web"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between rounded-lg bg-amber-50 p-3">
+                                <FormLabel className="text-sm font-medium cursor-pointer">Destacado</FormLabel>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-amber-500"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="oportunidad"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between rounded-lg bg-emerald-50 p-3">
+                                <FormLabel className="text-sm font-medium cursor-pointer">Oportunidad</FormLabel>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-emerald-500"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="oportunidad_grupo"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between rounded-lg bg-emerald-50 p-3">
+                                <FormLabel className="text-sm font-medium cursor-pointer">Oportunidad Grupo</FormLabel>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-emerald-500"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="reventa"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between rounded-lg bg-orange-50 p-3">
+                                <FormLabel className="text-sm font-medium cursor-pointer">Reventa</FormLabel>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-orange-500"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </CardContent>
+        </Card>
+
+        {/* Notas Internas */}
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow pt-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white py-4 !pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 rounded-xl bg-slate-100">
+                        <FileText className="h-5 w-5 text-slate-600" />
+                    </div>
+                    Notas Internas
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
                 <FormField
                     control={form.control}
-                    name="destacar_en_web"
+                    name="comentario_carga"
                     render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 hover:border-amber-400/50 transition-colors">
-                            <div className="space-y-0.5">
-                                <FormLabel className="font-semibold text-gray-900">Destacado</FormLabel>
-                                <FormDescription className="text-gray-500">
-                                    Aparecerá en la sección de destacados.
-                                </FormDescription>
-                            </div>
+                        <FormItem>
+                            <FormLabel>Comentarios / Observaciones</FormLabel>
                             <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    className="data-[state=checked]:bg-amber-500"
+                                <Textarea
+                                    placeholder="Notas internas sobre el vehículo (no visibles públicamente)..."
+                                    className="min-h-[100px] resize-y"
+                                    {...field}
+                                    value={field.value || ''}
                                 />
                             </FormControl>
+                            <FormDescription className="text-gray-500">
+                                Información adicional para uso interno
+                            </FormDescription>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -603,28 +925,38 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
         </Card>
 
         {/* Imágenes */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-                <CardTitle className="flex items-center gap-3 text-lg">
-                    <div className="p-2 rounded-xl bg-violet-100">
-                        <ImageIcon className="h-5 w-5 text-violet-600" />
-                    </div>
-                    Imágenes
-                </CardTitle>
-                <p className="text-sm text-gray-500 ml-12">La primera imagen será la principal (portada).</p>
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow pt-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white py-4 !pb-4">
+                <div className="flex items-center justify-between w-full">
+                    <CardTitle className="flex items-center gap-3 text-lg">
+                        <div className="p-2 rounded-xl bg-slate-100">
+                            <ImageIcon className="h-5 w-5 text-slate-600" />
+                        </div>
+                        Imágenes
+                    </CardTitle>
+                    <span className={cn(
+                        "text-sm font-medium px-3 py-1 rounded-full",
+                        serverImages.length + newImages.length >= 15
+                            ? "bg-red-100 text-red-600"
+                            : "bg-gray-100 text-gray-600"
+                    )}>
+                        {serverImages.length + newImages.length} / 15
+                    </span>
+                </div>
+                <p className="text-sm text-gray-500">La primera imagen será la principal (portada).</p>
             </CardHeader>
             <CardContent className="pt-6">
                 <div className="grid gap-6">
                     <div className="flex items-center justify-center w-full">
-                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50/50 hover:bg-[#0188c8]/5 border-gray-300 hover:border-[#0188c8]/50 transition-all duration-200 group">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <div className="p-3 rounded-full bg-[#0188c8]/10 mb-3 group-hover:bg-[#0188c8]/20 transition-colors">
-                                    <UploadCloud className="w-8 h-8 text-[#0188c8]" />
+                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50/50 hover:bg-[#0188c8]/5 border-gray-300 hover:border-[#0188c8]/50 transition-all duration-200 group">
+                            <div className="flex flex-col items-center justify-center py-6">
+                                <div className="p-4 rounded-full bg-[#0188c8]/10 mb-4 group-hover:bg-[#0188c8]/20 transition-colors">
+                                    <UploadCloud className="w-10 h-10 text-[#0188c8]" />
                                 </div>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-base text-gray-600">
                                     <span className="font-semibold text-[#0188c8]">Click para subir</span> o arrastra las fotos
                                 </p>
-                                <p className="text-xs text-gray-400 mt-1">JPG, PNG (MAX. 15 fotos)</p>
+                                <p className="text-sm text-gray-400 mt-2">JPG, PNG, WEBP (máximo 15 fotos)</p>
                             </div>
                             <input
                                 id="dropzone-file"
@@ -633,11 +965,12 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
                                 multiple
                                 accept="image/*"
                                 onChange={handleImageSelect}
+                                disabled={serverImages.length + newImages.length >= 15}
                             />
                         </label>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {/* Imágenes Guardadas (Server) */}
                         {serverImages.map((img) => (
                              <div key={img.id} className="relative group aspect-square rounded-lg overflow-hidden border bg-gray-100">
@@ -710,5 +1043,19 @@ export function VehicleForm({ initialData, existingImages = [], onSubmit, isSubm
 
       </form>
     </Form>
+
+    {/* Modal para agregar vendedor */}
+    <VendorSheet
+      vendedor={null}
+      open={showVendorSheet}
+      onOpenChange={setShowVendorSheet}
+      onSuccess={(newVendor) => {
+        fetchVendedores();
+        if (newVendor) {
+          form.setValue('vendedor_dueno', newVendor.id.toString());
+        }
+      }}
+    />
+    </>
   );
 }

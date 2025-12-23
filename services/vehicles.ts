@@ -162,6 +162,8 @@ export interface VehicleFilters {
   ordering?: string;
   page?: number;
   limit?: number;
+  // Tipo de vehículo: "auto" | "camioneta" | "camion" | "moto"
+  tipo_vehiculo?: string;
 }
 
 function mapApiToVehicleCard(apiVehicle: ApiVehicleSummary): VehicleCard {

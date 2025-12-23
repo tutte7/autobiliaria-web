@@ -31,10 +31,24 @@ interface DashboardStats {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dolarBlue, setDolarBlue] = useState<number>(1200);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        // Obtener cotización del dólar blue
+        let cotizacion = 1200; // Fallback
+        try {
+          const dolarRes = await fetch('https://dolarapi.com/v1/dolares/blue');
+          if (dolarRes.ok) {
+            const dolarData = await dolarRes.json();
+            cotizacion = dolarData.venta;
+            setDolarBlue(cotizacion);
+          }
+        } catch (error) {
+          console.error('Error al obtener cotización:', error);
+        }
+
         const response = await adminApi.get('/api/vehiculos/');
         const vehiculos = response.data.results || response.data || [];
 
@@ -42,17 +56,23 @@ export default function AdminDashboard() {
         const reservados = vehiculos.filter((v: any) => v.reservado).length;
         const vendidos = vehiculos.filter((v: any) => v.vendido).length;
 
-        // Calcular valor del inventario (solo disponibles)
+        // Calcular valor del inventario en USD (solo disponibles)
         const valorInventario = vehiculos
           .filter((v: any) => v.disponible && !v.vendido)
-          .reduce((acc: number, v: any) => acc + (parseFloat(v.precio) || 0), 0);
+          .reduce((acc: number, v: any) => {
+            const precio = parseFloat(v.precio) || 0;
+            // Convertir a USD si está en pesos
+            const esUSD = v.moneda_nombre === 'Dólar' || v.moneda_nombre === 'USD';
+            const precioEnUSD = esUSD ? precio : precio / cotizacion;
+            return acc + precioEnUSD;
+          }, 0);
 
         setStats({
           totalVehiculos: vehiculos.length,
           disponibles,
           reservados,
           vendidosEsteMes: vendidos,
-          valorInventario,
+          valorInventario: Math.round(valorInventario),
           solicitudesPendientes: 0
         });
       } catch (error) {
@@ -96,18 +116,18 @@ export default function AdminDashboard() {
       value: stats?.reservados || 0,
       description: 'En proceso',
       icon: Clock,
-      color: 'from-amber-500 to-amber-600',
-      bgLight: 'bg-amber-50',
-      iconColor: 'text-amber-600'
+      color: 'from-cyan-500 to-cyan-600',
+      bgLight: 'bg-cyan-50',
+      iconColor: 'text-cyan-600'
     },
     {
       title: 'Vendidos',
       value: stats?.vendidosEsteMes || 0,
       description: 'Total vendidos',
       icon: TrendingUp,
-      color: 'from-violet-500 to-violet-600',
-      bgLight: 'bg-violet-50',
-      iconColor: 'text-violet-600'
+      color: 'from-sky-500 to-sky-600',
+      bgLight: 'bg-sky-50',
+      iconColor: 'text-sky-600'
     },
   ];
 
@@ -194,6 +214,9 @@ export default function AdminDashboard() {
             <div className="text-4xl font-bold bg-gradient-to-r from-[#0188c8] to-[#00e8ff] bg-clip-text text-transparent">
               USD {stats?.valorInventario?.toLocaleString('es-AR') || 0}
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Cotización: $1 USD = ${dolarBlue.toLocaleString('es-AR')} ARS
+            </p>
           </CardContent>
         </Card>
 
@@ -201,15 +224,15 @@ export default function AdminDashboard() {
         <Card className="border-0 shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-xl bg-amber-100">
-                <AlertCircle className="h-5 w-5 text-amber-600" />
+              <div className="p-2 rounded-xl bg-blue-100">
+                <AlertCircle className="h-5 w-5 text-blue-600" />
               </div>
               Solicitudes Pendientes
             </CardTitle>
             <CardDescription>Contactos y consultas por responder</CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
-            <div className="text-4xl font-bold text-amber-600">
+            <div className="text-4xl font-bold text-blue-600">
               {stats?.solicitudesPendientes || 0}
             </div>
             <Button variant="outline" className="rounded-xl" asChild>

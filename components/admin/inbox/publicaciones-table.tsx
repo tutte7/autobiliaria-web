@@ -130,7 +130,7 @@ export function PublicacionesTable({ onDataChange }: PublicacionesTableProps) {
         if (publicacion.estado === 'vista') {
             return <Badge className="bg-green-100 text-green-700 border-green-200">Vista</Badge>;
         }
-        return <Badge className="bg-amber-100 text-amber-700 border-amber-200">Pendiente</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Pendiente</Badge>;
     };
 
     return (
@@ -179,7 +179,7 @@ export function PublicacionesTable({ onDataChange }: PublicacionesTableProps) {
                             data.map((publicacion) => (
                                 <TableRow
                                     key={publicacion.id}
-                                    className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer ${publicacion.estado === 'pendiente' ? 'bg-amber-50/30' : ''} ${publicacion.estado === 'eliminada' ? 'opacity-50' : ''}`}
+                                    className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer ${publicacion.estado === 'pendiente' ? 'bg-blue-50/30' : ''} ${publicacion.estado === 'eliminada' ? 'opacity-50' : ''}`}
                                     onClick={() => handleRowClick(publicacion)}
                                 >
                                     <TableCell className="px-4 py-3">

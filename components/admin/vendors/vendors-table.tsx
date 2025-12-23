@@ -164,7 +164,7 @@ export function VendorsTable({ onEdit, onDataChange }: VendorsTableProps) {
                                                 </Badge>
                                             )}
                                             {vendedor.tiene_cartel && (
-                                                <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                                                <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200">
                                                     Con Cartel
                                                 </Badge>
                                             )}

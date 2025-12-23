@@ -61,7 +61,7 @@ export function ConsultaSheet({
                         <Badge
                             className={
                                 consulta.tipo === 'reserva'
-                                    ? 'bg-purple-100 text-purple-700 border-purple-200'
+                                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
                                     : 'bg-sky-100 text-sky-700 border-sky-200'
                             }
                         >

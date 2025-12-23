@@ -1,69 +1,9 @@
-"use client"
-
 import Link from "next/link"
 import { Calendar, Gauge, Fuel, Settings } from "lucide-react"
+import { vehiclesService, VehicleCard } from "@/services/vehicles"
 
-interface VehicleCard {
-  id: number
-  name: string
-  price: number
-  year: number
-  km: number
-  image: string
-  brand: string
-  segment: string
-  fuel: string
-  transmission: string
-  prevPrice?: number
-  discount?: number
-  badge?: string
-}
-
-export default function FeaturedOffers() {
-  const vehicles: VehicleCard[] = [
-    {
-      id: 1,
-      name: "Toyota Corolla XEi",
-      price: 28500000,
-      prevPrice: 32000000,
-      discount: 11,
-      year: 2023,
-      km: 15000,
-      fuel: "Nafta",
-      transmission: "Automática",
-      brand: "Toyota",
-      segment: "Sedán",
-      image: "/toyota-corolla-azul.jpg",
-      badge: "Oportunidad",
-    },
-    {
-      id: 2,
-      name: "Ford Ranger XLT 4x4",
-      price: 42000000,
-      year: 2022,
-      km: 28000,
-      fuel: "Diésel",
-      transmission: "Manual",
-      brand: "Ford",
-      segment: "Pickup",
-      image: "/ford-ranger-roja.jpg",
-      badge: "Destacado",
-    },
-    {
-      id: 3,
-      name: "Chevrolet Onix Premier",
-      price: 22000000,
-      year: 2024,
-      km: 0,
-      fuel: "Nafta",
-      transmission: "Automática",
-      brand: "Chevrolet",
-      segment: "Hatchback",
-      image: "/chevrolet-cruze-negro.jpg",
-      badge: "0 KM",
-    },
-  ]
-
+// Client Component: Maneja la UI
+function FeaturedOffersClient({ vehicles }: { vehicles: VehicleCard[] }) {
   return (
     <section className="bg-gradient-to-b from-background to-muted/30 px-4 py-16">
       <div className="mx-auto max-w-[1200px] space-y-8">
@@ -158,4 +98,15 @@ export default function FeaturedOffers() {
       </div>
     </section>
   )
+}
+
+// Server Component Wrapper: Se encarga del Data Fetching
+export default async function FeaturedOffers() {
+  const vehicles = await vehiclesService.getVehicles({ destacar_en_web: true, limit: 6 })
+
+  if (!vehicles || vehicles.length === 0) {
+    return null
+  }
+
+  return <FeaturedOffersClient vehicles={vehicles} />
 }

@@ -84,7 +84,7 @@ export default function VendedoresPage() {
             label: 'Con Cartel',
             value: stats.conCartel,
             icon: Megaphone,
-            color: 'bg-amber-50 text-amber-700 border-amber-200'
+            color: 'bg-cyan-50 text-cyan-700 border-cyan-200'
         },
     ];
 

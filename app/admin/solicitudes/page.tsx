@@ -57,13 +57,13 @@ export default function SolicitudesPage() {
             label: 'Tasaciones Pendientes',
             value: publicacionesStats.pendientes,
             icon: Car,
-            color: 'bg-amber-50 text-amber-700 border-amber-200'
+            color: 'bg-blue-50 text-blue-700 border-blue-200'
         },
         {
             label: 'Tasaciones Vistas',
             value: publicacionesStats.vistas,
             icon: Clock,
-            color: 'bg-violet-50 text-violet-700 border-violet-200'
+            color: 'bg-sky-50 text-sky-700 border-sky-200'
         },
     ];
 
@@ -122,7 +122,7 @@ export default function SolicitudesPage() {
                         <Car className="h-4 w-4 mr-2" />
                         Tasaciones
                         {publicacionesStats.pendientes > 0 && (
-                            <span className="ml-2 rounded-full bg-amber-500 text-white text-xs px-2 py-0.5">
+                            <span className="ml-2 rounded-full bg-blue-500 text-white text-xs px-2 py-0.5">
                                 {publicacionesStats.pendientes}
                             </span>
                         )}

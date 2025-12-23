@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, Bell, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import {
   SidebarProvider,
   SidebarInset,
@@ -97,27 +97,6 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Búsqueda Global */}
-            <div className="hidden md:flex items-center">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar vehículos, vendedores..."
-                  className="h-10 w-64 pl-10 pr-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0188c8]/20 focus:border-[#0188c8] transition-all"
-                />
-                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex h-5 items-center gap-1 rounded border border-gray-200 bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-500">
-                  Ctrl+K
-                </kbd>
-              </div>
-            </div>
-
-            {/* Notificaciones */}
-            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl hover:bg-gray-100">
-              <Bell className="h-5 w-5 text-gray-500" />
-              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-            </Button>
-
             {/* Acceso Rápido Web */}
             <Button
               variant="outline"

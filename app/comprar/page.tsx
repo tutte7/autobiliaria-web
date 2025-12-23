@@ -51,6 +51,7 @@ export default function ComprarPage() {
         search: searchParams.get('search') || undefined,
         ordering: searchParams.get('ordering') || undefined,
         oportunidad: searchParams.get('opportunity') === 'true' || undefined,
+        tipo_vehiculo: searchParams.get('tipo') || undefined,
         // NOTA: No enviamos precio_min ni precio_max a la API
       }
 

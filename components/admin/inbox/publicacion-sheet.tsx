@@ -110,7 +110,7 @@ export function PublicacionSheet({
         if (publicacion.estado === 'vista') {
             return <Badge className="bg-green-100 text-green-700 border-green-200">Vista</Badge>;
         }
-        return <Badge className="bg-amber-100 text-amber-700 border-amber-200">Pendiente</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Pendiente</Badge>;
     };
 
     return (

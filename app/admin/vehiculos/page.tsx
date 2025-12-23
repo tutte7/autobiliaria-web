@@ -156,8 +156,8 @@ export default function AdminVehiclesPage() {
   const statCards = [
     { label: 'Total', value: stats.total, icon: Car, color: 'bg-blue-50 text-blue-700 border-blue-200' },
     { label: 'Disponibles', value: stats.disponibles, icon: CheckCircle2, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    { label: 'Reservados', value: stats.reservados, icon: Clock, color: 'bg-amber-50 text-amber-700 border-amber-200' },
-    { label: 'Vendidos', value: stats.vendidos, icon: TrendingUp, color: 'bg-violet-50 text-violet-700 border-violet-200' },
+    { label: 'Reservados', value: stats.reservados, icon: Clock, color: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+    { label: 'Vendidos', value: stats.vendidos, icon: TrendingUp, color: 'bg-sky-50 text-sky-700 border-sky-200' },
   ];
 
   return (
@@ -214,14 +214,14 @@ export default function AdminVehiclesPage() {
             </TabsTrigger>
             <TabsTrigger
               value="reserved"
-              className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-amber-600 font-medium text-sm"
+              className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-cyan-600 font-medium text-sm"
             >
               <span className="hidden sm:inline">Reservados</span>
               <span className="sm:hidden">Res.</span>
             </TabsTrigger>
             <TabsTrigger
               value="sold"
-              className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-600 font-medium text-sm"
+              className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-sky-600 font-medium text-sm"
             >
               <span className="hidden sm:inline">Vendidos</span>
               <span className="sm:hidden">Vend.</span>
