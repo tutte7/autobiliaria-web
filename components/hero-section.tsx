@@ -212,7 +212,7 @@ export default function HeroSection() {
             {/* Texto Hero (Izquierda) */}
             <div className="lg:col-span-5 text-white space-y-6 text-center lg:text-left">
               <div className="space-y-4">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight drop-shadow-md">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.1] tracking-tight drop-shadow-md">
                   Encuentra tu <br />
                   <span className="text-primary-foreground text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
                     Auto Perfecto

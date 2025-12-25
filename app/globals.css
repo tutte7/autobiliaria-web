@@ -147,6 +147,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Tipografía de marca para títulos */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-square-721), "Square 721 TL Bold Extended", "Arial", sans-serif;
+}
+
 /* Removed problematic @import "tw-animate-css" that was causing CSS parsing error */
 
 /* Custom animations for Autobiiliaria */

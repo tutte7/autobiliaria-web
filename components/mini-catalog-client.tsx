@@ -10,12 +10,13 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { VehicleCard } from "@/services/vehicles"
+import { VehicleCard as VehicleCardType } from "@/services/vehicles"
+import { VehicleCard } from "@/components/vehicle-card"
 
 type Category = "oportunidad" | "auto" | "camion" | "moto"
 
 // Inferir categoría desde el segmento del vehículo
-function getCategory(vehicle: VehicleCard): "auto" | "camion" | "moto" {
+function getCategory(vehicle: VehicleCardType): "auto" | "camion" | "moto" {
   const segment = vehicle.segment.toLowerCase()
   if (segment.includes("moto") || segment.includes("scooter")) return "moto"
   if (segment.includes("pickup") || segment.includes("camion") || segment.includes("utilitario")) return "camion"
@@ -23,12 +24,12 @@ function getCategory(vehicle: VehicleCard): "auto" | "camion" | "moto" {
 }
 
 // Verificar si es oportunidad usando el badge
-function isOpportunity(vehicle: VehicleCard): boolean {
+function isOpportunity(vehicle: VehicleCardType): boolean {
   return vehicle.badge === "Oportunidad"
 }
 
 interface MiniCatalogClientProps {
-  vehicles: VehicleCard[]
+  vehicles: VehicleCardType[]
 }
 
 export default function MiniCatalogClient({ vehicles }: MiniCatalogClientProps) {
@@ -124,36 +125,13 @@ export default function MiniCatalogClient({ vehicles }: MiniCatalogClientProps) 
         </div>
 
         {/* Carousel */}
-        <div className="relative">
+        <div className="relative pb-8">
           {filtered.length > 0 ? (
             <Carousel opts={{ align: "start", loop: true }} className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {filtered.map((v) => (
                   <CarouselItem key={v.id} className="pl-2 md:basis-1/2 lg:basis-1/3 md:pl-4">
-                    <Link href={`/vehiculo/${v.id}`}>
-                      <div className="group relative overflow-hidden rounded-[26px] border border-border/60 bg-card shadow-[0_18px_32px_-24px_rgba(15,54,89,0.25)] transition-transform duration-300 hover:-translate-y-2 cursor-pointer">
-                        <div className="relative h-48 overflow-hidden md:h-56">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={v.image} alt={v.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                        </div>
-                        <div className="space-y-5 px-6 pb-6 pt-5">
-                          <div className="space-y-1">
-                            <h3 className="text-lg font-semibold text-foreground">{v.name}</h3>
-                            <p className="text-sm text-muted-foreground">{v.brand} • {v.segment}</p>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
-                            <div>{v.year}</div>
-                            <div>{v.km.toLocaleString("es-AR")} km</div>
-                            <div>{v.fuel}</div>
-                            <div>{v.transmission}</div>
-                          </div>
-                          <div className="text-2xl font-bold text-primary">${v.price.toLocaleString("es-AR")}</div>
-                          <div className="w-full rounded-full bg-[linear-gradient(156deg,rgba(0,232,255,1)_0%,rgba(1,136,200,1)_100%)] px-6 py-2 text-sm font-semibold text-white transition-transform duration-300 hover:scale-[1.02] text-center">
-                            Ver más
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
+                    <VehicleCard variant="default" {...v} />
                   </CarouselItem>
                 ))}
               </CarouselContent>

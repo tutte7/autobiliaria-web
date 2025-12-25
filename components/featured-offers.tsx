@@ -1,9 +1,9 @@
 import Link from "next/link"
-import { Calendar, Gauge, Fuel, Settings } from "lucide-react"
-import { vehiclesService, VehicleCard } from "@/services/vehicles"
+import { vehiclesService, VehicleCard as VehicleCardType } from "@/services/vehicles"
+import { VehicleCard } from "@/components/vehicle-card"
 
 // Client Component: Maneja la UI
-function FeaturedOffersClient({ vehicles }: { vehicles: VehicleCard[] }) {
+function FeaturedOffersClient({ vehicles }: { vehicles: VehicleCardType[] }) {
   return (
     <section className="bg-gradient-to-b from-background to-muted/30 px-4 py-16">
       <div className="mx-auto max-w-[1200px] space-y-8">
@@ -12,78 +12,13 @@ function FeaturedOffersClient({ vehicles }: { vehicles: VehicleCard[] }) {
           <p className="text-lg text-muted-foreground">Los mejores precios en autos seleccionados</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 pb-8">
           {vehicles.map((vehicle) => (
-            <Link key={vehicle.id} href={`/vehiculo/${vehicle.id}`}>
-              <div className="group relative cursor-pointer rounded-[28px] bg-[linear-gradient(156deg,rgba(0,232,255,1)_0%,rgba(1,136,200,1)_100%)] p-[2px] shadow-[0_18px_40px_-20px_rgba(1,136,200,0.45)] transition-transform duration-300 hover:-translate-y-3">
-                <div className="relative rounded-[26px] bg-white">
-                  <div className="relative h-56 overflow-hidden rounded-t-[26px]">
-                    <img
-                      src={vehicle.image || "/placeholder.svg"}
-                      alt={vehicle.name}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-
-                    <div className="absolute left-4 top-4 flex items-center gap-2">
-                      {vehicle.badge && (
-                        <span className="rounded-full bg-[rgba(0,176,155,0.9)] px-4 py-[6px] text-xs font-semibold uppercase tracking-wide text-white shadow-lg">
-                          {vehicle.badge}
-                        </span>
-                      )}
-
-                      {vehicle.discount && (
-                        <span className="rounded-full bg-[rgba(249,77,77,0.95)] px-3 py-[5px] text-xs font-semibold text-white shadow-md">
-                          -{vehicle.discount}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-5 px-6 pb-6 pt-6">
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-semibold text-foreground">{vehicle.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {vehicle.brand} • {vehicle.segment}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-primary" />
-                        <span>{vehicle.year}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Gauge size={16} className="text-primary" />
-                        <span>{vehicle.km.toLocaleString("es-AR")} km</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Fuel size={16} className="text-primary" />
-                        <span>{vehicle.fuel}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Settings size={16} className="text-primary" />
-                        <span>{vehicle.transmission}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl font-bold text-primary">
-                        ${vehicle.price.toLocaleString("es-AR")}
-                      </div>
-                      {vehicle.prevPrice && (
-                        <div className="text-sm font-semibold text-muted-foreground/70 line-through">
-                          ${vehicle.prevPrice.toLocaleString("es-AR")}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="w-full rounded-full bg-[linear-gradient(156deg,rgba(0,232,255,1)_0%,rgba(1,136,200,1)_100%)] px-6 py-2 text-sm font-semibold text-white transition-transform hover:scale-[1.02] text-center">
-                      Ver más
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
+            <VehicleCard
+              key={vehicle.id}
+              variant="gradient"
+              {...vehicle}
+            />
           ))}
         </div>
 
