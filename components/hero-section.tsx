@@ -29,7 +29,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-type Category = "auto" | "camioneta" | "moto" | "oportunidad"
+type Category = "auto" | "camioneta" | "moto" | "oportunidad" | null
 
 type CategoryOption = {
   value: Category
@@ -40,7 +40,7 @@ type CategoryOption = {
 
 export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [selectedCategory, setSelectedCategory] = useState<Category>("auto")
+  const [selectedCategory, setSelectedCategory] = useState<Category>(null)
 
   const [form, setForm] = useState({
     marca: "",
@@ -165,7 +165,7 @@ export default function HeroSection() {
 
     if (selectedCategory === "oportunidad") {
       params.set("opportunity", "true")
-    } else {
+    } else if (selectedCategory) {
       params.set("tipo", selectedCategory)
     }
 
@@ -241,28 +241,25 @@ export default function HeroSection() {
 
             {/* Tarjeta de Búsqueda (Derecha) */}
             <div className="lg:col-span-7 w-full">
-              <div className="relative overflow-hidden rounded-[2rem] bg-white shadow-2xl ring-1 ring-white/10 animate-fade-in-up">
-                
+              <div className="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-white/10 via-white/5 to-primary/5 backdrop-blur-xl shadow-2xl ring-1 ring-white/20 animate-fade-in-up">
+
                 {/* Header Tarjeta */}
-                <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/50">
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <Search className="text-primary w-5 h-5" />
+                <div className="px-5 py-3 border-b border-white/10 bg-gradient-to-r from-primary/10 to-transparent">
+                  <h2 className="text-base font-semibold text-white/90 flex items-center gap-2">
+                    <Search className="text-primary w-4 h-4" />
                     Búsqueda Inteligente
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Selecciona una categoría y personaliza tu búsqueda.
-                  </p>
                 </div>
 
-                <div className="p-6 sm:p-8 space-y-8 bg-white">
+                <div className="p-5 sm:p-6 space-y-5">
                   
                   {/* Categorías */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-bold uppercase tracking-wider text-gray-400">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium uppercase tracking-wider text-white/50">
                       Categoría
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {categoryOptions.map(({ value, label, helper, Icon }) => {
+                    <div className="grid grid-cols-4 gap-2">
+                      {categoryOptions.map(({ value, label, Icon }) => {
                         const isSelected = selectedCategory === value
                         return (
                           <button
@@ -270,23 +267,15 @@ export default function HeroSection() {
                             type="button"
                             onClick={() => setSelectedCategory(value)}
                             className={cn(
-                              "relative flex flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all duration-200 border-2",
-                              "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
+                              "flex flex-col items-center justify-center gap-1 rounded-xl py-2.5 px-1 transition-all duration-200 border backdrop-blur-sm",
+                              "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 focus:ring-offset-transparent",
                               isSelected
-                                ? "border-primary bg-primary text-white shadow-lg shadow-primary/25 scale-[1.02]"
-                                : "border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-200"
+                                ? "border-primary/50 bg-primary/20 text-white shadow-lg shadow-primary/20"
+                                : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:border-primary/30 hover:text-white/80"
                             )}
                           >
-                            <Icon size={24} className={cn(isSelected ? "text-white" : "text-gray-400")} />
-                            <div className="text-center">
-                              <div className="font-bold text-sm leading-tight">{label}</div>
-                              <div className={cn("text-[10px] font-medium mt-0.5", isSelected ? "text-blue-100" : "text-gray-400")}>
-                                {helper}
-                              </div>
-                            </div>
-                            {isSelected && (
-                              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rotate-45 transform" />
-                            )}
+                            <Icon size={20} className={cn(isSelected ? "text-primary" : "text-white/50")} />
+                            <span className="font-medium text-xs leading-tight">{label}</span>
                           </button>
                         )
                       })}
@@ -294,12 +283,12 @@ export default function HeroSection() {
                   </div>
 
                   {/* Formulario */}
-                  <form onSubmit={handleAdvancedSearch} className="space-y-6">
-                    
+                  <form onSubmit={handleAdvancedSearch} className="space-y-4">
+
                     {/* Fila 1: Marca y Modelo */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Marca</label>
+                        <label className="text-xs font-medium text-white/50 ml-1">Marca</label>
                         <Popover open={openBrand} onOpenChange={setOpenBrand}>
                           <PopoverTrigger asChild>
                             <Button
@@ -307,25 +296,23 @@ export default function HeroSection() {
                               role="combobox"
                               aria-expanded={openBrand}
                               disabled={loadingBrands}
-                              className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                              className="w-full justify-between h-10 rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm px-3 text-sm font-normal text-white hover:bg-white/15 hover:border-white/25 transition-all disabled:opacity-50"
                             >
                               {loadingBrands ? (
-                                <span className="flex items-center gap-2 text-gray-400">
-                                  Cargando...
-                                </span>
+                                <span className="text-white/40">Cargando...</span>
                               ) : form.marca ? (
-                                brands.find((b) => b.id.toString() === form.marca)?.nombre || "Marca seleccionada"
+                                <span className="truncate text-white">{brands.find((b) => b.id.toString() === form.marca)?.nombre || "Marca"}</span>
                               ) : (
-                                <span className="text-gray-400">Todas las marcas</span>
+                                <span className="text-white/40">Todas</span>
                               )}
-                              <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                              <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 text-white/40" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
-                            <Command className="rounded-lg">
-                              <CommandInput placeholder="Buscar marca..." className="h-10 text-base border-none focus:ring-0" />
-                              <CommandList className="max-h-[280px] p-1">
-                                <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró la marca.</CommandEmpty>
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border border-white/20 shadow-2xl bg-gray-900/95 backdrop-blur-xl" align="start">
+                            <Command className="rounded-lg bg-transparent">
+                              <CommandInput placeholder="Buscar marca..." className="h-9 text-sm border-none focus:ring-0 text-white placeholder:text-white/40" />
+                              <CommandList className="max-h-[240px] p-1">
+                                <CommandEmpty className="py-3 text-sm text-white/50">No se encontró.</CommandEmpty>
                                 <CommandGroup>
                                   <CommandItem
                                     value="all_brands_option"
@@ -333,14 +320,9 @@ export default function HeroSection() {
                                       handleInputChange("marca", "")
                                       setOpenBrand(false)
                                     }}
-                                    className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                    className="rounded-lg px-2 py-2 text-sm cursor-pointer text-white/80 hover:bg-white/10 aria-selected:bg-white/15"
                                   >
-                                    <Check
-                                      className={cn(
-                                        "mr-3 h-4 w-4",
-                                        form.marca === "" ? "text-primary opacity-100" : "opacity-0"
-                                      )}
-                                    />
+                                    <Check className={cn("mr-2 h-4 w-4", form.marca === "" ? "text-primary opacity-100" : "opacity-0")} />
                                     Todas las marcas
                                   </CommandItem>
                                   {brands.map((brand) => (
@@ -351,16 +333,9 @@ export default function HeroSection() {
                                         handleInputChange("marca", brand.id.toString())
                                         setOpenBrand(false)
                                       }}
-                                      className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                      className="rounded-lg px-2 py-2 text-sm cursor-pointer text-white/80 hover:bg-white/10 aria-selected:bg-white/15"
                                     >
-                                      <Check
-                                        className={cn(
-                                          "mr-3 h-4 w-4",
-                                          form.marca === brand.id.toString()
-                                            ? "text-primary opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
+                                      <Check className={cn("mr-2 h-4 w-4", form.marca === brand.id.toString() ? "text-primary opacity-100" : "opacity-0")} />
                                       {brand.nombre}
                                     </CommandItem>
                                   ))}
@@ -372,7 +347,7 @@ export default function HeroSection() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Modelo</label>
+                        <label className="text-xs font-medium text-white/50 ml-1">Modelo</label>
                         <Popover open={openModel} onOpenChange={setOpenModel}>
                           <PopoverTrigger asChild>
                             <Button
@@ -380,27 +355,23 @@ export default function HeroSection() {
                               role="combobox"
                               aria-expanded={openModel}
                               disabled={!form.marca || loadingModels}
-                              className="w-full justify-between h-14 rounded-xl border-2 border-gray-200 bg-white px-4 text-base font-normal text-gray-900 shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                              className="w-full justify-between h-10 rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm px-3 text-sm font-normal text-white hover:bg-white/15 hover:border-white/25 transition-all disabled:opacity-50"
                             >
                               {loadingModels ? (
-                                <span className="flex items-center gap-2 text-gray-400">
-                                  Cargando...
-                                </span>
+                                <span className="text-white/40">Cargando...</span>
                               ) : form.modelo ? (
-                                models.find((m) => m.id.toString() === form.modelo)?.nombre || "Modelo seleccionado"
+                                <span className="truncate text-white">{models.find((m) => m.id.toString() === form.modelo)?.nombre || "Modelo"}</span>
                               ) : (
-                                <span className="text-gray-400">
-                                  {!form.marca ? "Primero elige marca" : "Todos los modelos"}
-                                </span>
+                                <span className="text-white/40">{!form.marca ? "Elegí marca" : "Todos"}</span>
                               )}
-                              <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                              <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 text-white/40" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border-none shadow-xl bg-white" align="start">
-                            <Command className="rounded-lg">
-                              <CommandInput placeholder="Buscar modelo..." className="h-10 text-base border-none focus:ring-0" />
-                              <CommandList className="max-h-[280px] p-1">
-                                <CommandEmpty className="py-4 text-sm text-gray-500">No se encontró el modelo.</CommandEmpty>
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1 rounded-xl border border-white/20 shadow-2xl bg-gray-900/95 backdrop-blur-xl" align="start">
+                            <Command className="rounded-lg bg-transparent">
+                              <CommandInput placeholder="Buscar modelo..." className="h-9 text-sm border-none focus:ring-0 text-white placeholder:text-white/40" />
+                              <CommandList className="max-h-[240px] p-1">
+                                <CommandEmpty className="py-3 text-sm text-white/50">No se encontró.</CommandEmpty>
                                 <CommandGroup>
                                   <CommandItem
                                     value="all_models_option"
@@ -408,14 +379,9 @@ export default function HeroSection() {
                                       handleInputChange("modelo", "")
                                       setOpenModel(false)
                                     }}
-                                    className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                    className="rounded-lg px-2 py-2 text-sm cursor-pointer text-white/80 hover:bg-white/10 aria-selected:bg-white/15"
                                   >
-                                    <Check
-                                      className={cn(
-                                        "mr-3 h-4 w-4",
-                                        form.modelo === "" ? "text-primary opacity-100" : "opacity-0"
-                                      )}
-                                    />
+                                    <Check className={cn("mr-2 h-4 w-4", form.modelo === "" ? "text-primary opacity-100" : "opacity-0")} />
                                     Todos los modelos
                                   </CommandItem>
                                   {models.map((model) => (
@@ -426,16 +392,9 @@ export default function HeroSection() {
                                         handleInputChange("modelo", model.id.toString())
                                         setOpenModel(false)
                                       }}
-                                      className="rounded-lg px-3 py-2.5 text-sm cursor-pointer aria-selected:bg-secondary aria-selected:text-secondary-foreground transition-colors"
+                                      className="rounded-lg px-2 py-2 text-sm cursor-pointer text-white/80 hover:bg-white/10 aria-selected:bg-white/15"
                                     >
-                                      <Check
-                                        className={cn(
-                                          "mr-3 h-4 w-4",
-                                          form.modelo === model.id.toString()
-                                            ? "text-primary opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
+                                      <Check className={cn("mr-2 h-4 w-4", form.modelo === model.id.toString() ? "text-primary opacity-100" : "opacity-0")} />
                                       {model.nombre}
                                     </CommandItem>
                                   ))}
@@ -447,58 +406,54 @@ export default function HeroSection() {
                       </div>
                     </div>
 
-                    {/* Fila 2: Precios */}
-                    <div className="grid grid-cols-2 gap-5">
+                    {/* Fila 2: Precios y Características */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Precio Mín.</label>
+                        <label className="text-xs font-medium text-white/50 ml-1">Precio Mín.</label>
                         <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">USD</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-xs font-medium">USD</span>
                           <input
                             type="number"
                             placeholder="0"
                             min={0}
                             value={form.precioMin}
                             onChange={(e) => handleInputChange("precioMin", e.target.value)}
-                            className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-14 pr-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
+                            className="h-10 w-full rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm pl-11 pr-3 text-sm text-white transition-colors focus:border-white/30 focus:bg-white/15 focus:outline-none placeholder:text-white/30"
                           />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Precio Máx.</label>
+                        <label className="text-xs font-medium text-white/50 ml-1">Precio Máx.</label>
                         <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">USD</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-xs font-medium">USD</span>
                           <input
                             type="number"
                             placeholder="Sin límite"
                             min={0}
                             value={form.precioMax}
                             onChange={(e) => handleInputChange("precioMax", e.target.value)}
-                            className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-14 pr-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
+                            className="h-10 w-full rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm pl-11 pr-3 text-sm text-white transition-colors focus:border-white/30 focus:bg-white/15 focus:outline-none placeholder:text-white/30"
                           />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Fila 3: Características (Opcional) */}
-                    <div className="space-y-1.5">
-                       <label className="text-sm font-semibold text-gray-700 ml-1">
-                          ¿Buscas algo específico? <span className="text-gray-400 font-normal">(Opcional)</span>
-                       </label>
-                       <input
+                      <div className="space-y-1.5 col-span-2 sm:col-span-1">
+                        <label className="text-xs font-medium text-white/50 ml-1">Búsqueda</label>
+                        <input
                           type="text"
                           value={form.caracteristicas}
                           onChange={(e) => handleInputChange("caracteristicas", e.target.value)}
-                          placeholder='Ej: "automático", "cuero", "techo solar"...'
-                          className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white px-4 text-base text-gray-900 shadow-sm transition-colors focus:border-primary focus:outline-none placeholder:text-gray-300"
+                          placeholder="automático, cuero..."
+                          className="h-10 w-full rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm px-3 text-sm text-white transition-colors focus:border-white/30 focus:bg-white/15 focus:outline-none placeholder:text-white/30"
                         />
+                      </div>
                     </div>
 
                     {/* Botón CTA */}
                     <button
                       type="submit"
-                      className="w-full h-16 rounded-xl bg-primary text-white text-lg font-bold tracking-wide shadow-xl shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-3"
+                      className="w-full h-11 rounded-xl bg-gradient-to-r from-primary to-cyan-500 text-white text-sm font-bold tracking-wide shadow-lg shadow-primary/30 transition-all hover:shadow-primary/50 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-2"
                     >
-                      <Search size={24} strokeWidth={2.5} />
+                      <Search size={18} strokeWidth={2.5} />
                       VER VEHÍCULOS
                     </button>
 
