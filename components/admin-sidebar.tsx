@@ -3,6 +3,7 @@
 import {
   LayoutDashboard,
   CarFront,
+  CalendarDays,
   Inbox,
   Users,
   Settings,
@@ -45,6 +46,11 @@ const items = [
     title: 'Inventario',
     url: '/admin/vehiculos',
     icon: CarFront,
+  },
+  {
+    title: 'Agenda',
+    url: '/admin/agenda',
+    icon: CalendarDays,
   },
   {
     title: 'Bandeja de Entrada',
